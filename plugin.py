@@ -81,3 +81,9 @@ class TaxonomyPluginMount(type):
 		clazz = categories.pop()
 		return cls.findClass(clazz, categories)
 		
+	def getFQClassName(cls):
+		if cls.__category__ != "":
+			return ".".join((cls.__category__,cls.__name__))
+		else:
+			return cls.__name__
+		
