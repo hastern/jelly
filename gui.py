@@ -25,16 +25,15 @@ class InterfaceBuilder(wx.App):
 		self.preparePlugins()
 		self.wHnd = wx.Frame(None, wx.DEFAULT_FRAME_STYLE , title, size=size)
 		logger.debug("Loading Menu")
-		self.menu = MenuBuilder(self.wHnd, self)
-		self.wHnd.SetMenuBar(self.menu.build())
 		
+		self.menu = MenuBuilder(self.wHnd, self)
+		self.view = ViewBuilder(self.wHnd, self)
+		
+		self.view.createView()
+		self.wHnd.SetMenuBar(self.menu.build())
 		self.statusbar = self.wHnd.CreateStatusBar()
 		
-		self.view = ViewBuilder(self.wHnd, self)
-		self.view.createView()
-		
 		self.refreshId = wx.NewId()
-		
 		self.wHnd.Bind(wx.EVT_MENU, self.OnCloseWindow, id = wx.ID_CLOSE)
 		self.wHnd.Bind(wx.EVT_SIZE, self.update)
 		self.wHnd.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
