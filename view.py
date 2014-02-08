@@ -61,6 +61,13 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 	Title = 'View'
 	name = "BaseView"
 	
+	def __init__(self, *args, **kwargs):
+		CoreWindowObject.__init__(self, *args, **kwargs)
+		self._created = False
+	
+	def onInit(self):
+		self.views = []
+	
 	def createView(self, parent = None):
 		assert self.isMount()
 		self.views = ViewBuilder.loadPlugins(self.windowHandle, self.coreRef)
@@ -92,7 +99,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 	def updateView(self):
 		if self.isMount():
 			for view in self.views:
-				view.updateView()
+				if view._created:
+					view.updateView()
 			
 	def loadPerspective(self, fname):
 		logger.info("Loading perspective {}".format(fname))
@@ -121,6 +129,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		pnl = wx.Panel(parent, id = wx.ID_ANY)
 		sizer = wx.BoxSizer(wx.VERTICAL)
 		page = view.createView(pnl)
+		view._created = True
 		sizer.Add(page, 1, wx.EXPAND|wx.ALL, 3)
 		pnl.SetSizer(sizer)
 		return pnl
