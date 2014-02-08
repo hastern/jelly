@@ -34,15 +34,19 @@ class MenuBuilder(CoreWindowObject, ShortcutBuilder):
 				self._menu.Append(menu, title)
 		return self._menu
 		
-	def menu(self):
-		return wx.Menu()
-		
+	def menu(self, parent = None, title = "Menu"):
+		menu = wx.Menu()
+		if parent is not None:
+			parent.AppendMenu(id = wx.NewId(), text = title, submenu = menu)
+		return menu
+
 	def separator(self, menu):
 		return menu.AppendSeparator()
 		
-	def item(self, menu, label = "Entry", hint = "", id=wx.ID_ANY, kind=wx.ITEM_NORMAL, image=""):
-		item = wx.MenuItem(menu, id, label, hint, kind)
-		item.SetBitmap(wx.ArtProvider.GetBitmap(image))
+	def item(self, menu, label = "Entry", hint = "", id=wx.ID_ANY, kind=wx.ITEM_NORMAL, image=None):
+		item = wx.MenuItem(parentMenu=menu, id=id, text=label, help=hint, kind=kind)
+		if image is not None:
+			item.SetBitmap(wx.ArtProvider.GetBitmap(image))
 		menu.AppendItem(item)
 		return item
 		
