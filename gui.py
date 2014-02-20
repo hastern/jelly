@@ -23,7 +23,7 @@ class InterfaceBuilder(wx.App):
 	def prepare(self, title="Jelly Application", size=(1200,700)):
 		logger.debug("loading interface plugins")
 		self.preparePlugins()
-		self.wHnd = wx.Frame(None, wx.DEFAULT_FRAME_STYLE , title, size=size)
+		self.wHnd = wx.Frame(None, wx.NewId(), title, size=size, style=wx.DEFAULT_FRAME_STYLE)
 		logger.debug("Loading Menu")
 		
 		self.menu = MenuBuilder(self.wHnd, self)
