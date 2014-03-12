@@ -85,6 +85,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		#self.tabs = wx.Notebook(self.windowHandle)
 		for view in self.views:
 			if view.Title != "":
+				logger.info("Loading view '{}'".format(view.Title))
 				content = self.packContent(self.tabs, view=view)
 				self.tabs.AddPage(content, view.Title)
 		self.registerShortcuts(self.views)
