@@ -37,10 +37,12 @@ class Event(type):
 	
 	def fire(cls, *args, **kwargs):
 		ev = cls(*args, **kwargs)
+		
 		for handler in cls.handlers:
 			handler(ev)
 		
 	def addHandler(cls, handler, *args):
+		logger.debug("Adding handler {}{} to '{}'".format(handler.__name__, args, cls.__class__.__name__,))
 		@wraps(handler)
 		def eventHandler(ev):
 			params = []
