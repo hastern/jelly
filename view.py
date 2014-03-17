@@ -21,6 +21,11 @@ class PerspectiveSaveEvent(EventBase):
 class PerspectiveLoadEvent(EventBase):
 	__slots__ = ['fname']
 		
+class PerspectiveShowEvent(EventBase):
+	__slots__ = ['index']
+	
+class PerspectiveTabCloseEvent(EventBase): pass
+		
 class PerspectiveResetEvent(EventBase): pass
 
 class ViewMenu(MenuBuilder):
@@ -33,10 +38,38 @@ class ViewMenu(MenuBuilder):
 		itemSave = self.item(self._menu, label="Save Perspective", hint="Save current Perspective", id=self._idSave, image=wx.ART_FILE_SAVE)
 		self.separator(self._menu)
 		itemReset = self.item(self._menu, label="Reset Perspective", hint="Reset Perspective to default", id=self._idReset, image=wx.ART_UNDO)
+		
+		self.menuWindows = self.menu(parent = self._menu, title = "Views")
+		self.updateViewsMenu()
+		
 		self.windowHandle.Bind(wx.EVT_MENU, lambda e:self.loadPerspective(), itemLoad)
 		self.windowHandle.Bind(wx.EVT_MENU, lambda e:self.savePerspective(), itemSave)
 		self.windowHandle.Bind(wx.EVT_MENU, lambda e:self.resetPerspective(), itemReset)
+		
+		PerspectiveTabCloseEvent.addHandler(self.updateViewsMenu)
+		
 		return self._menu, "&View", MenuBuilder.WeightAny
+		
+	
+	def updateViewsMenu(self):
+		# Append lines
+		while self.menuWindows.GetMenuItemCount() < len(self.coreRef.view.views):
+			itm = self.item(self.menuWindows, label="()", hint="Show View", id=wx.NewId(), kind=wx.ITEM_CHECK)
+			self.windowHandle.Bind(wx.EVT_MENU, self.selectView, itm)
+		# Remove lines
+		while self.menuWindows.GetMenuItemCount() > len(self.coreRef.view.views):
+			itm = self.menuWindows.FindItemByPosition(0)
+			self.windowHandle.Unbind(itm)
+			self.menuWindows.Delete(itm.GetId())
+		# Update labels
+		for idx,view in enumerate(self.coreRef.view.views):
+			itm = self.menuWindows.FindItemByPosition(idx)
+			itm.SetItemLabel(view.Title)
+			itm.SetHelp("Display '{}'".format(view.Title))
+			if self.coreRef.view.isViewVisisble(view):
+				itm.Check()
+			else:
+				itm.Check(False)
 		
 	@PerspectiveLoadEvent.dispatcher
 	def loadPerspective(self):
@@ -56,14 +89,25 @@ class ViewMenu(MenuBuilder):
 	def resetPerspective(self):
 		return None
 		
+	@PerspectiveShowEvent.dispatcher
+	def selectView(self, ev=None):
+		for idx, itm in enumerate(self.menuWindows.GetMenuItems()):
+			if itm.GetId() == ev.GetId():
+				return idx
+		return -1
+		
 class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 	__metaclass__ = PluginMount
 	Title = 'View'
 	name = "BaseView"
+	Closeable = True
 	
 	def __init__(self, *args, **kwargs):
 		CoreWindowObject.__init__(self, *args, **kwargs)
 		self._created = False
+		
+		if self.isMount():
+			PerspectiveShowEvent.addHandler(self.showView, 'index')
 	
 	def onInit(self):
 		self.views = []
@@ -81,6 +125,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				 | aui.AUI_NB_WINDOWLIST_BUTTON 
 				 | aui.AUI_NB_TAB_FLOAT 
 				 | aui.AUI_NB_TAB_EXTERNAL_MOVE
+				 | aui.AUI_NB_CLOSE_BUTTON
 		)
 		#self.tabs = wx.Notebook(self.windowHandle)
 		for view in self.views:
@@ -89,19 +134,32 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				self.tabs.AddPage(content, view.Title)
 		self.registerShortcuts(self.views)
 		
+		self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnCloseTab)
+		#self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnTabClosed)
+		
 		PerspectiveLoadEvent.addHandler(self.loadPerspective, 'fname')
 		PerspectiveSaveEvent.addHandler(self.savePerspective, 'fname')
 		PerspectiveResetEvent.addHandler(self.resetPerspective)
 		
 		if os.path.exists("default.perspective"):
 			self.loadPerspective("default.perspective")
+			
+	@PerspectiveTabCloseEvent.dispatcher
+	def OnCloseTab(self, event):
+		tabIdx = self.tabs.GetSelection()
+		if self.selectViewByIndex(tabIdx).Closeable:
+			logger.debug("Closing tab[{}] '{}'".format(tabIdx, self.tabs.GetPageText(tabIdx)))
+			self.tabs.DeletePage(tabIdx)
+		else:
+			logger.debug("Can't close tab[{}] '{}'".format(tabIdx, self.tabs.GetPageText(tabIdx)))
+		event.Veto()
 		
 	def updateView(self):
 		if self.isMount():
 			for view in self.views:
 				if view._created:
 					view.updateView()
-			
+					
 	def loadPerspective(self, fname):
 		logger.info("Loading perspective {}".format(fname))
 		state = open(fname, "rb").read()
@@ -122,6 +180,29 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 			if view.name == name:
 				return view
 		raise KeyError("There is no view '{}'".format(name))
+		
+	def selectViewByIndex(self, index):
+		assert self.isMount()
+		assert index >= 0
+		assert index < len(self.views)
+		return self.views[index]
+		
+	def isViewVisisble(self, view):
+		for idx in xrange(self.tabs.GetPageCount()):
+			lbl = self.tabs.GetPageText(idx)
+			if lbl == view.Title:
+				return True
+		return False
+		
+	def showView(self, index):
+		logger.debug("Showing page {}".format(index))
+		view = self.selectViewByIndex(index)
+		if not self.isViewVisisble(view):
+			if view.Title != "":
+				content = self.packContent(self.tabs, view=view)
+				self.tabs.InsertPage(index, content, view.Title)
+		else:
+			self.tabs.SetSelection(index)
 			
 	def packContent(self, parent, name = None, view = None):
 		if view is None:
