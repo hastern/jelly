@@ -110,7 +110,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 			PerspectiveShowEvent.addHandler(self.showView, 'index')
 	
 	def onInit(self):
-		self.views = []
+		if self.isMount():
+			self.views = []
 	
 	def createView(self, parent = None):
 		assert self.isMount()
@@ -146,6 +147,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 			
 	@PerspectiveTabCloseEvent.dispatcher
 	def OnCloseTab(self, event):
+		assert self.isMount()
 		tabIdx = self.tabs.GetSelection()
 		if self.selectViewByIndex(tabIdx).Closeable:
 			logger.debug("Closing tab[{}] '{}'".format(tabIdx, self.tabs.GetPageText(tabIdx)))
@@ -161,16 +163,19 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 					view.updateView()
 					
 	def loadPerspective(self, fname):
+		assert self.isMount()
 		logger.info("Loading perspective {}".format(fname))
 		state = open(fname, "rb").read()
 		self.tabs.LoadPerspective(state)
 		
 	def savePerspective(self, fname):
+		assert self.isMount()
 		logger.info("Saving perspective {}".format(fname))
 		state = self.tabs.SavePerspective()
 		open(fname, "wb").write(state)
 		
 	def resetPerspective(self):
+		assert self.isMount()
 		logger.info("Reseting perspective")
 		self.tabs.UnSplit()
 			
@@ -188,6 +193,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		return self.views[index]
 		
 	def isViewVisisble(self, view):
+		assert self.isMount()
 		for idx in xrange(self.tabs.GetPageCount()):
 			lbl = self.tabs.GetPageText(idx)
 			if lbl == view.Title:
@@ -195,6 +201,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		return False
 		
 	def showView(self, index):
+		assert self.isMount()
 		logger.debug("Showing page {}".format(index))
 		view = self.selectViewByIndex(index)
 		if not self.isViewVisisble(view):
@@ -205,6 +212,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 			self.tabs.SetSelection(index)
 			
 	def packContent(self, parent, name = None, view = None):
+		assert self.isMount()
 		if view is None:
 			view = self.selectView(name)
 		pnl = wx.Panel(parent, id = wx.ID_ANY)
@@ -216,6 +224,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		return pnl
 			
 	def showAsWindow(self, name = None, view = None):
+		assert self.isMount()
 		frame = wx.Frame(self.windowHandle)
 		content = self.packContent(frame, name, view)
 		return frame
