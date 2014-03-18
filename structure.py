@@ -2,20 +2,23 @@
 # -*- coding:utf-8 -*-
 
 import logging
+# We are assuming, that there is an already configured logger present
 logger = logging.getLogger(__name__)
 
 class Structure(object):
+	"""Simple struct-like object.
+	members are controlled via the contents of the __slots__ list."""
 	__slots__ = []
+	"""Structure members"""
 	__defaults__ = {}
+	"""Default values for (a part of) the structure members. 
+	__defaults__.keys() must be a (inproper) subset __slots__."""
 	def __init__(self, *args, **kwargs):
 		"""
-		Constructor for simple struct-like object
-		members are controlled via the contents of the __slots__ list.
-		
-		@param	*args: Positional arguments
+		@param	*args:   Positional arguments
 		@param **kwargs: Keyword arguments
 		"""
-		# Initialise all members with None
+		# Initialize all members with None
 		map(lambda k: self.__setattr__(k, self.__defaults__[k]() if k in self.__defaults__ else None), self.__slots__)
 				
 		# Positional definition of members

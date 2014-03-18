@@ -6,7 +6,7 @@ NAME 	= jelly
 
 PY	=python
 SETUP	=$(PY) setup.py
-DOC	=$(PY) epydoc.py
+DOC	=epydoc
 
 SRC_EGG	=$(shell $(SETUP) --fullname)-py2.7.egg
 

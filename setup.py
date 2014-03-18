@@ -19,10 +19,10 @@ Copyright = ''
 setup(
 	name=Name, version=Version, description=Description,
 	author=Author, author_email=Mail, url=Url,
-	py_modules=['view', 'logger', 'baseobjs', 'event','structure','shortcut','menu','plugin','gui','__init__'],
+	py_modules=['__init__', 'logger', 'plugin', 'event', 'gui', 'view', 'menu', 'baseobjs', 'structure', 'shortcut'],
 	license=read('LICENSE'),
 	long_description=read('README.md'),
-	install_requires=['pyparsing'],
+	install_requires=['wxpython'],
 	options = {},
 	data_files=[],
 	zipfile=None,
