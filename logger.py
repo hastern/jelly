@@ -10,6 +10,22 @@ know anything about the python logging facility.
 
 import logging
 
+from event import EventBase
+
+class JellyLogEvent(EventBase):
+	__slots__ = ['record', 'message']
+
+class JellyEventLogHandler(logging.Handler):
+
+	def __init__(self):
+		logging.Handler.__init__(self)
+		
+	@JellyLogEvent.dispatcher
+	def emit(self, record):
+		s = self.format(record)
+		return record, s
+
+
 def configureLogger(name = "jelly", formatString = '%(asctime)s [%(levelname)s] %(name)s: %(message)s', level = logging.DEBUG):
 	"""
 	Configure a logger for the python logging facility.
@@ -27,9 +43,15 @@ def configureLogger(name = "jelly", formatString = '%(asctime)s [%(levelname)s] 
 	@rtype:  logging.Logger
 	"""
 	logger = logging.getLogger(name)
-	handler = logging.StreamHandler()
+	streamHandler = logging.StreamHandler()
+	jellyHandler  = JellyEventLogHandler()
 	formatter = logging.Formatter(formatString)
-	handler.setFormatter(formatter)
-	logger.addHandler(handler)
+	streamHandler.setFormatter(formatter)
+	jellyHandler.setFormatter(formatter)
+	logger.addHandler(streamHandler)
+	logger.addHandler(jellyHandler)
 	logger.setLevel(level)
 	return logger
+	
+
+

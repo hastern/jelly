@@ -83,7 +83,7 @@ class Event(type):
 		@param *args: A list of elements from the event passed to the 
 		              handler
 		"""
-		logger.debug("Adding handler {}{} to '{}'".format(handler.__name__, args, cls.__class__.__name__,))
+		logger.debug("Adding handler {}{} to '{}'".format(handler.__name__, args, cls.__name__,))
 		@wraps(handler)
 		def eventHandler(ev):
 			params = []
