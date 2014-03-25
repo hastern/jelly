@@ -27,3 +27,7 @@ class Structure(object):
 				self.__setattr__(self.__slots__[i], a)
 		# Keyword definition of members
 		map(lambda k: self.__setattr__(k, None), filter(lambda k: k in self.__slots__, kwargs))
+		
+	@property
+	def kind(self):
+		return self.__class
