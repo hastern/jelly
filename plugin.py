@@ -94,7 +94,7 @@ class TaxonomyPluginMount(type):
 		will become the mount, any later objects (meaning: childs) 
 		act as plugins.
 		
-		The taxonomy is created via nested dictionaries.
+		The taxonomy is created through a dictionary.
 		Each plugin can define a class-member `__category__`.
 		The Elements of the hierarchy are separated by a single dot.
 		
@@ -112,38 +112,13 @@ class TaxonomyPluginMount(type):
 		"""
 		if not hasattr(cls, 'taxonomy'):
 			logger.debug("Creating TaxonomyPluginMount {}".format(cls.__name__))
-			cls.taxonomy = {}
+			cls.taxonomy     = {}
 			cls.__category__ = ""
 		else:
 			logger.debug("Registering plugin {} into taxonomy {}".format(cls.__name__, cls.__category__))
-			taxonomy = cls.taxonomy
-			if cls.__category__ != "":
-				for category in cls.__category__.split('.'):
-					if category not in taxonomy:
-						taxonomy[category] = {}
-					taxonomy = taxonomy[category]
-			taxonomy[cls.__name__] = cls
+			cls.taxonomy[cls.FQClassName] = cls
+				
 			
-	def findClass(cls, clazz, categories):
-		"""Lookup for a fully qualified class name
-		
-		@type  cls: object
-		@param cls: The hook class
-		
-		@type  clazz: str
-		@param clazz: The name of the class to be looked up.
-		
-		@type  categories: list
-		@param categories: The hierarchy in which the class is ordered.
-		
-		@rtype:  object
-		@return: The class
-		"""
-		taxonomy = cls.taxonomy
-		for category in categories:
-			taxonomy = taxonomy[category]
-		return taxonomy[clazz]
-		
 	def __getitem__(cls, key):
 		"""Implementation of the Indexed-Access-Operator (`[]`).
 		Delegating to a call of `TaxonomyPluginMount.findClass`.
@@ -157,9 +132,7 @@ class TaxonomyPluginMount(type):
 		@rtype:  object
 		@return: The class
 		"""
-		categories = key.split('.')
-		clazz = categories.pop()
-		return cls.findClass(clazz, categories)
+		return cls.taxonomy[key]
 		
 	def getFQClassName(cls):
 		"""
@@ -173,4 +146,19 @@ class TaxonomyPluginMount(type):
 			return ".".join((cls.__category__,cls.__name__))
 		else:
 			return cls.__name__
+			
+	@property
+	def FQClassName(cls):
+		"""Remapping getter method to a property"""
+		return cls.getFQClassName()
+
+	def loadPlugins(cls, *args, **kwargs):
+		"""Create a list of instantiated plugins
+		if this is not called from inside the mount instance, you should
+		specify the *caller* argument, to avoid double instantiation of 
+		your child class""" 
+		caller = kwargs['caller'].__class__ if 'caller' in kwargs else None
+		return {key:clazz(*args, **kwargs) for key,clazz in cls.taxonomy.iteritems() if key is not caller}
+			
 		
+	
