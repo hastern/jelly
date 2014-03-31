@@ -20,7 +20,7 @@ import logging
 # We are assuming, that there is an already configured logger present
 logger = logging.getLogger(__name__)
 
-def createPluginsFolder(dirname = 'plugins'):
+def createPluginsFolder(dirname = 'plugins'): # pragma: no cover
 	"""Create a plugin folder in the current working directory,
 	if none is existent.
 	
