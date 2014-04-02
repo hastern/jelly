@@ -38,9 +38,9 @@ def createPluginsFolder(dirname = 'plugins'): # pragma: no cover
 	__import__(module[:-3], locals(), globals())
 	del module
 	"""
-	if not os.path.exists(name):
-		os.mkdir(name)
-		open("{}/__init__.py".format(name), "w").write(pluginInit)
+	if not os.path.exists(dirname):
+		os.mkdir(dirname)
+		open("{}/__init__.py".format(dirname), "w").write(pluginInit)
 
 class PluginMount(type):
 	"""A simple pluginMount. 
