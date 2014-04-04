@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import wx
+import os.path
 
 # other jelly modules
 from plugin import PluginMount
@@ -166,7 +167,7 @@ class InterfaceBuilder(wx.App):
 				
 		diag = wx.FileDialog(self.wHnd, message, defaultDir=dir, wildcard = wc, style=mode)
 		diag.ShowModal()
-		return diag.Filename
+		return os.path.join(diag.Directory, diag.Filename)
 	
 	def messageDialog(self, message, caption=wx.MessageBoxCaptionStr, style=wx.OK | wx.ICON_INFORMATION):
 		"""Displays a messagedialog.
