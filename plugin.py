@@ -28,16 +28,17 @@ def createPluginsFolder(dirname = 'plugins'): # pragma: no cover
 	@param dirname: The name for the plugin-directory
 	"""
 	import os
+	import os.path
 	pluginInit = """#!/usr/bin/env python
-	# -*- coding: utf-8 -*-
-	
-	import os
-	for module in os.listdir(os.path.dirname(__file__)):
-		if module == '__init__.py' or module[-3:] != '.py':
-			continue
-	__import__(module[:-3], locals(), globals())
-	del module
-	"""
+# -*- coding: utf-8 -*-
+
+import os
+for module in os.listdir(os.path.dirname(__file__)):
+	if module == '__init__.py' or module[-3:] != '.py':
+		continue
+__import__(module[:-3], locals(), globals())
+del module
+"""
 	if not os.path.exists(dirname):
 		os.mkdir(dirname)
 		open("{}/__init__.py".format(dirname), "w").write(pluginInit)
