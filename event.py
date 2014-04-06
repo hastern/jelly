@@ -31,7 +31,7 @@ class Event(type):
 	def __init__(cls, *args):	
 		"""Give every class-object its own handler list"""
 		cls.handlers = []
-		logger.debug("Creating handler list on {}".format(cls))
+		logger.debug("Creating handler list on {}".format(cls.__name__))
 
 	def dispatcher(cls, func):
 		"""Event dispatcher - Function decorator
@@ -49,6 +49,7 @@ class Event(type):
 		@rtype:  method
 		@return: Decorated dispatcher function
 		"""
+		logger.debug("New {}.dispatcher: {}".format(cls.__name__, func))
 		@wraps(func)
 		def eventDispatcher(self, *args, **kwargs):
 			try:
