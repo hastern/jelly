@@ -58,17 +58,14 @@ class Event(type):
 					params = ret
 				else:
 					params = (ret, )
-				for handler in cls.handlers:
-					handler(cls(*params))
+				cls.fire(*params)
 			except SkipEvent:
 				pass
 		return eventDispatcher
 	
 	def fire(cls, *args, **kwargs):
-		ev = cls(*args, **kwargs)
-		
 		for handler in cls.handlers:
-			handler(ev)
+			handler(cls(*args, **kwargs))
 		
 	def addHandler(cls, handler, *args):
 		"""
