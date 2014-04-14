@@ -161,15 +161,19 @@ class TaxonomyPluginMount(type):
 		caller = kwargs['caller'].__class__ if 'caller' in kwargs else None
 		return {key:clazz(*args, **kwargs) for key,clazz in cls.taxonomy.iteritems() if key is not caller}
 		
-	def getAllCategories(cls):
+	def getAllCategories(cls, exclude = []):
 		"""Create a dictionary with all categories and the class per 
 		category.
 		Returns a dictionary where the keys are the full category with 
 		a list of class names as values.
+		
+		@type  exclude: list
+		@param exclude: List of categories to be excluded
 		"""
 		d = {}
 		for k,e in map(lambda s: s.rsplit(".", 1), cls.taxonomy.keys()): 
-			d[k] = [e] if k not in d else d[k]+[e]
+			if k not in exclude:
+				d[k] = [e] if k not in d else d[k]+[e]
 		return d
 		
 	
