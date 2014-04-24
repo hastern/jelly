@@ -206,14 +206,15 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				 | aui.AUI_NB_WINDOWLIST_BUTTON 
 				 | aui.AUI_NB_TAB_FLOAT 
 				 | aui.AUI_NB_TAB_EXTERNAL_MOVE
-				 | aui.AUI_NB_CLOSE_BUTTON
+				 | aui.AUI_NB_CLOSE_ON_ALL_TABS
 		)
 		#self.tabs = wx.Notebook(self.windowHandle)
-		for view in self.views:
+		for idx,view in enumerate(self.views):
 			if view.Title != "":
 				logger.info("Loading view '{}'".format(view.Title))
 				content = self.packContent(self.tabs, view=view)
 				self.tabs.AddPage(content, view.Title)
+				self.tabs.SetCloseButton(idx, view.Closeable)
 		self.registerShortcuts(self.views)
 		
 		self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnCloseTab)
