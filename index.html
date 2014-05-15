@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Jelly by drakehutner</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Jelly</h1>
+        <p>wxPython based application framework</p>
+
+        <p class="view"><a href="https://github.com/drakehutner/jelly">View the Project on GitHub <small>drakehutner/jelly</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/drakehutner/jelly/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/drakehutner/jelly/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/drakehutner/jelly">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="jelly" class="anchor" href="#jelly"><span class="octicon octicon-link"></span></a>jelly</h1>
+
+<p><code>jelly</code> is a <a href="http://wxpython.org/">wxPython</a> based application framework.</p>
+
+<p>The core of <code>jelly</code> is based around a duck-typing infused plugin system, which
+enables the whole <code>jelly</code> application to be loosely coupled.
+An event system provides a common communication interface for the different 
+application-parts.</p>
+
+<h2>
+<a name="contents" class="anchor" href="#contents"><span class="octicon octicon-link"></span></a>Contents</h2>
+
+<ul>
+<li>
+<em>logger.py</em>:    Jelly utilities the <a href="http://docs.python.org/2/library/logging.html">python logging facility</a>. 
+              Every module assumes that a properly configured hierarchical 
+          logger is present.
+          This module provides a function to create such a logger without 
+          the need to know anything about the python logging facility.</li>
+<li>
+<em>plugin.py</em>:    Plugin System </li>
+<li>
+<em>event.py</em>:     Event System</li>
+<li>
+<em>gui.py</em>:       Application Core Factory</li>
+<li>
+<em>menu.py</em>:      Menu Factory</li>
+<li>
+<em>view.py</em>:      View Factory</li>
+<li>
+<em>baseobjs.py</em>:  Utility module with basic objects</li>
+<li>
+<em>structure.py</em>: Utility module for simple struct-like object</li>
+<li>
+<em>shortcut.py</em>:  Mixin to provide shortcut access</li>
+</ul><h2>
+<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h2>
+
+<p>This is a rundown of the included <em>"example.py"</em> file.</p>
+
+<p>The first thing do, is to initialize the logger.</p>
+
+<pre><code>from logger import configureLogger
+configureLogger()
+</code></pre>
+
+<p>Since jelly is based on wxPython, you should import wx.</p>
+
+<pre><code>import wx
+</code></pre>
+
+<p>Import the needed parts of Jelly.</p>
+
+<pre><code>from gui import InterfaceBuilder
+from view import ViewBuilder
+</code></pre>
+
+<p>Create a new application by inheriting from the <code>InterfaceBuilder</code>.</p>
+
+<pre><code>class JellySampleApp(InterfaceBuilder):
+
+    def showGui(self):
+        self.prepare(title="Jelly Example Application", size=(400,150))
+        self.show()
+</code></pre>
+
+<p>Create views, in this case a simple TextCtrl with a button, that show the text 
+as an information-dialog if the button is clicked.</p>
+
+<pre><code>class JellySampleView(ViewBuilder):
+
+    def createView(self, parent):
+        panel = wx.Panel(parent)
+        sizer = wx.BoxSizer()
+
+        self.label  = wx.StaticText(panel, label="Input:")
+        self.edit   = wx.TextCtrl(panel)
+        self.button = wx.Button(panel, label="Click")
+
+        sizer.Add(self.label, 0)
+        sizer.Add(self.edit, 1)
+        sizer.Add(self.button, 0)
+
+        self.button.Bind(wx.EVT_BUTTON, self.OnClick)
+
+        panel.SetSizer(sizer)
+        return panel
+
+    def OnClick(self, event):
+        self.coreRef.displayInformation(self.edit.GetValue())
+        self.edit.SetValue("")
+</code></pre>
+
+<p>Load your application and show the GUI.</p>
+
+<pre><code>if __name__ == "__main__":
+    sample = JellySampleApp()
+    sample.showGui()
+</code></pre>
+
+<p>All done!</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/drakehutner">drakehutner</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
