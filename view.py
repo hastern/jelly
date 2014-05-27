@@ -420,4 +420,234 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		content = self.packContent(frame, name, view)
 		return frame
 		
+	def defaultPanel(self, parent):
+		"""Initializes the view with a simple panel.
+		Will also creates a GridBagSizer.
+		
+		Panel and Sizer will be saved as "pnl" and "sizer" into the 
+		class instance.
+		
+		@type  parent: wx.Window
+		@param parent: The parent window
+		"""
+		self.pnl   = wx.Panel(parent)
+		self.sizer = wx.GridBagSizer()
+		self.pnl.SetSizer(self.sizer)
+		
+		return self.pnl, self.sizer
+
+		
+	def defaultScrollPanel(self, parent):
+		"""Initializes the view with a panel, that has a scrollbar
+		Will also creates a GridBagSizer.
+		
+		Panel and Sizer will be saved as "pnl" and "sizer" into the 
+		class instance.
+		
+		@type  parent: wx.Window
+		@param parent: The parent window
+		"""
+		self.pnl   = wx.ScrolledWindow(parent, style=wx.VSCROLL)
+		self.sizer = wx.GridBagSizer()
+		self.pnl.EnableScrolling(True, True)
+		self.pnl.SetScrollRate(1,1)
+		self.pnl.SetSizer(self.sizer)
+		
+		return self.pnl, self.sizer
+
+	def defaultTree(self, parent, headers = [(),()], style = wx.SIMPLE_BORDER|wx.TR_HAS_BUTTONS|wx.TR_SINGLE|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT):
+		"""Initializes the view with a single TreeView
+		
+		@type  parent: wx.Window
+		@param parent: The parent window
+		
+		@type  headers: list of tuple
+		@param headers: A list of column headers and column widths
+		
+		@type  style: int
+		@param style: The style of the Tree. Default: 
+		              wx.SIMPLE_BORDER         |
+			      wx.TR_HAS_BUTTONS        |
+			      wx.TR_SINGLE             |
+			      wx.TR_FULL_ROW_HIGHLIGHT | 
+			      wx.TR_HIDE_ROOT
+		
+		"""
+		self.tree = wx.gizmos.TreeListCtrl(parent, id=wx.ID_ANY, style=wx.SIMPLE_BORDER|wx.TR_HAS_BUTTONS|wx.TR_SINGLE|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT)
+		for header,width in headers:
+			self.tree.AddColumn(text=header, width=width)
+		return self.tree
+		
+	def defaultField(self, field, event, label, action= None, ctrlopts=dict(), sizeropts=dict(position = (0,0), span=(1,1), border=3, flags=wx.TOP|wx.EXPAND)):
+		"""Create and place a new component.
+		
+		@type  field: wx.Window
+		@param field: The type of the component
+		
+		@type  event: wx.Event
+		@param event: The event to which the action will be bound
+		
+		@type  label: str
+		@param label: The label for the component
+		
+		@type  action: Function or Bound Method
+		@param action: The handler for the event 
+		
+		@type  ctrlopts: dict
+		@param ctrlopts: The arguments passed to the constructor of the 
+		                 component
+				 
+		@type  sizeropts: dict
+		@param sizeropts: The options passed to the sizer call
+		"""
+		assert hasattr(self, "pnl")
+		assert hasattr(self, "sizer")
+		assert isinstance(self.sizer, wx.GridBagSizer)
+		
+		label = wx.StaticText(self.pnl, label=label)
+		ctrl  = field(self.pnl, **ctrlopts)
+		if action is not None:
+			ctrl.bind(event, action)
+		
+		self.sizer.Add(label, pos=sizeropts['position'], span=(1,1),  border=sizeropts['border'], flag=sizeropts['flags'])
+		self.sizer.Add(ctrl, pos=(sizeropts['position'][0],sizeropts['position'][1]+1), span=sizeropts['span'], border=sizeropts['border'], flag=sizeropts['flags'])
+		
+		return ctrl
+
+	def textField(self, label="", value = "", position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+		"""Create a new text field (TextCtrl)
+		Wraps the defaultField() Method
+		
+		@type  label: str
+		@param label: The label of the field
+		
+		@type  value: str
+		@param value: The initial value for the field
+		
+		@type  position: tuple
+		@param position: The position of the field inside the sizer
+		
+		@type  span: tuple
+		@param span: The spanning of the field in the sizer
+		
+		@type  border: int
+		@param border: The border between the components
+		
+		@type  sizerFlags: int 
+		@param sizerFlags: The flags passed to the sizer.Add call
+		
+		@type  action: Function or Bound Method
+		@param action: The event handler for the KILL_FOCUS event
+		
+		@type  style: int
+		@param style: The style of the TextCtrl
+		"""
+		return self.defaultField(wx.TextCtrl, wx.EVT_KILL_FOCUS, label, action, ctrlopts=dict(style=style, value=value), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		
+	def numberField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+		"""Create a new number field (SpinCtrl)
+		Wraps the defaultField() Method
+		
+		@type  label: str
+		@param label: The label of the field
+		
+		@type  value: int
+		@param value: The initial value for the field
+		
+		@type  min: int
+		@param min: The minimal value for the field
+		
+		@type  max: int
+		@param max: The maximal value for the field
+		
+		@type  position: tuple
+		@param position: The position of the field inside the sizer
+		
+		@type  span: tuple
+		@param span: The spanning of the field in the sizer
+		
+		@type  border: int
+		@param border: The border between the components
+		
+		@type  sizerFlags: int 
+		@param sizerFlags: The flags passed to the sizer.Add call
+		
+		@type  action: Function or Bound Method
+		@param action: The event handler for the KILL_FOCUS event
+		
+		@type  style: int
+		@param style: The style of the TextCtrl
+		"""
+		return self.defaultField(wx.SpinCtrl, wx.EVT_SPINCTRL, label, action, ctrlopts=dict(style=style, initial=value, min=min, max=max), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		
+	def sliderField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS):
+		"""Create a new number field (Slider)
+		Wraps the defaultField() Method
+		
+		@type  label: str
+		@param label: The label of the field
+		
+		@type  value: int
+		@param value: The initial value for the field
+		
+		@type  min: int
+		@param min: The minimal value for the field
+		
+		@type  max: int
+		@param max: The maximal value for the field
+		
+		@type  position: tuple
+		@param position: The position of the field inside the sizer
+		
+		@type  span: tuple
+		@param span: The spanning of the field in the sizer
+		
+		@type  border: int
+		@param border: The border between the components
+		
+		@type  sizerFlags: int 
+		@param sizerFlags: The flags passed to the sizer.Add call
+		
+		@type  action: Function or Bound Method
+		@param action: The event handler for the KILL_FOCUS event
+		
+		@type  style: int
+		@param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
+		"""
+		return self.defaultField(wx.Slider, wx.EVT_SCROLL, label, action, ctrlopts=dict(style=style, value=value, minValue=min, maxValue=max), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
 	
+	def choiceField(self, label="", choices=(), selection="", position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+		"""Create a new selection field (ComboBox)
+		Wraps the defaultField() Method
+		
+		@type  label: str
+		@param label: The label of the field
+		
+		@type  selection: str
+		@param selection: The initial value for the field
+		
+		@type  choices: list
+		@param choices: The choices for the selection
+		
+		@type  position: tuple
+		@param position: The position of the field inside the sizer
+		
+		@type  span: tuple
+		@param span: The spanning of the field in the sizer
+		
+		@type  border: int
+		@param border: The border between the components
+		
+		@type  sizerFlags: int 
+		@param sizerFlags: The flags passed to the sizer.Add call
+		
+		@type  action: Function or Bound Method
+		@param action: The event handler for the KILL_FOCUS event
+		
+		@type  style: int
+		@param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
+		"""
+		return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=map(str, choices)), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+
+		
+		
