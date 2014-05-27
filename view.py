@@ -508,7 +508,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		label = wx.StaticText(self.pnl, label=label)
 		ctrl  = field(self.pnl, **ctrlopts)
 		if action is not None:
-			ctrl.bind(event, action)
+			ctrl.Bind(event, action)
 		
 		self.sizer.Add(label, pos=sizeropts['position'], span=(1,1),  border=sizeropts['border'], flag=sizeropts['flags'])
 		self.sizer.Add(ctrl, pos=(sizeropts['position'][0],sizeropts['position'][1]+1), span=sizeropts['span'], border=sizeropts['border'], flag=sizeropts['flags'])
