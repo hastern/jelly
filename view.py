@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 import os.path
 
 import wx
+import wx.gizmos
 import wx.lib.agw.aui as aui
 
 # other jelly modules
