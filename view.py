@@ -514,7 +514,73 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		self.sizer.Add(ctrl, pos=(sizeropts['position'][0],sizeropts['position'][1]+1), span=sizeropts['span'], border=sizeropts['border'], flag=sizeropts['flags'])
 		
 		return ctrl
-
+		
+	def radioField(self, label, choices=list(), position = (0,0), span=(1,2), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+		"""Create and place a new component.
+		
+		@type  field: wx.Window
+		@param field: The type of the component
+		
+		@type  event: wx.Event
+		@param event: The event to which the action will be bound
+		
+		@type  label: str
+		@param label: The label for the component
+		
+		@type  action: Function or Bound Method
+		@param action: The handler for the event 
+		
+		@type  ctrlopts: dict
+		@param ctrlopts: The arguments passed to the constructor of the 
+		                 component
+				 
+		@type  sizeropts: dict
+		@param sizeropts: The options passed to the sizer call
+		"""
+		assert hasattr(self, "pnl")
+		assert hasattr(self, "sizer")
+		assert isinstance(self.sizer, wx.GridBagSizer)
+		
+		ctrl  = wx.RadioBox(self.pnl, label=label, choices=choices, majorDimension=1)
+		if action is not None:
+			ctrl.Bind(event, action)
+		ctrl.GetValue = ctrl.GetSelection
+		ctrl.SetValue = ctrl.SetSelection
+		
+		self.sizer.Add(ctrl, pos=position, span=span, border=border, flag=sizerFlags)
+		
+		return ctrl	
+		
+	def buttonField(self, label="", caption=(), position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+		"""Create a new text field (TextCtrl)
+		Wraps the defaultField() Method
+		
+		@type  label: str
+		@param label: The label of the field
+		
+		@type  caption: str
+		@param caption: The caption of the button
+		
+		@type  position: tuple
+		@param position: The position of the field inside the sizer
+		
+		@type  span: tuple
+		@param span: The spanning of the field in the sizer
+		
+		@type  border: int
+		@param border: The border between the components
+		
+		@type  sizerFlags: int 
+		@param sizerFlags: The flags passed to the sizer.Add call
+		
+		@type  action: Function or Bound Method
+		@param action: The event handler for the KILL_FOCUS event
+		
+		@type  style: int
+		@param style: The style of the TextCtrl
+		"""
+		return self.defaultField(wx.Button, wx.EVT_BUTTON, label, action, ctrlopts=dict(style=style, value=value), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+	
 	def textField(self, label="", value = "", position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
 		"""Create a new text field (TextCtrl)
 		Wraps the defaultField() Method
