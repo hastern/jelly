@@ -167,7 +167,8 @@ class InterfaceBuilder(wx.App):
 				
 		diag = wx.FileDialog(self.wHnd, message, defaultDir=dir, wildcard = wc, style=mode)
 		diag.ShowModal()
-		return os.path.join(diag.Directory, diag.Filename)
+		return os.path.join(diag.Directory, diag.Filename) if diag.Filename != "" else ""
+
 	
 	def messageDialog(self, message, caption=wx.MessageBoxCaptionStr, style=wx.OK | wx.ICON_INFORMATION):
 		"""Displays a messagedialog.
