@@ -6,7 +6,7 @@ Jelly Views
 
 Contains the View builder and a Menu for accessing all available views.
 
-The `ViewBuilder` utilises the *Advanced User Interface* library or more 
+The `ViewBuilder` utilizes the *Advanced User Interface* library or more 
 specific, the `auiNotebook`. The term *Perspective* in the later refers to the 
 arrangement of views inside the `auiNotebook`.
 
@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 import os.path
 
+from collections import OrderedDict
+
 import wx
 import wx.gizmos
 import wx.lib.agw.aui as aui
@@ -28,6 +30,10 @@ from plugin import PluginMount
 from shortcut import ShortcutBuilder
 from menu import MenuBuilder
 from event import SkipEvent, EventBase
+
+class DuplicateViewNameError(Exception):
+	"""The Software tries to create view, with a name, that already exists"""
+	pass
 		
 class PerspectiveSaveEvent(EventBase):
 	"""The current perspective gets saved."""
@@ -93,7 +99,7 @@ class ViewMenu(MenuBuilder):
 			self.windowHandle.Unbind(itm)
 			self.menuWindows.Delete(itm.GetId())
 		# Update labels
-		for idx,view in enumerate(self.coreRef.view.views):
+		for idx,view in enumerate(self.coreRef.view.views.itervalues()):
 			itm = self.menuWindows.FindItemByPosition(idx)
 			itm.SetItemLabel(view.Title)
 			itm.SetHelp("Display '{}'".format(view.Title))
@@ -153,7 +159,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 	Title = 'View'
 	"""The title of the view, gets display as the caption of the 
 	corresponding tab."""
-	name = "BaseView"
+	name = "ViewBuilder"
 	"""The name of the view, for selecting them by a meaningful name rather 
 	the class name"""
 	Closeable = True
@@ -168,6 +174,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		"""
 		CoreWindowObject.__init__(self, *args, **kwargs)
 		self._created = False
+		if self.__class__.name == ViewBuilder.name:
+			self.__class__.name = self.__class__.__name__
 		
 	
 	def onInit(self):
@@ -196,7 +204,11 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@param self: The ViewBuilder instance
 		"""
 		assert self.isMount()
-		self.views = ViewBuilder.loadPlugins(self.windowHandle, self.coreRef)
+		self.views = OrderedDict()
+		for plug in ViewBuilder.loadPlugins(self.windowHandle, self.coreRef):
+			if plug.name in self.views:
+				raise DuplicateViewNameError(plug.name)
+			self.views[plug.name] = plug
 					
 		self.tabs = aui.AuiNotebook(self.windowHandle, id=wx.ID_ANY, 
 			agwStyle = aui.AUI_NB_TOP 
@@ -210,13 +222,13 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				 | aui.AUI_NB_CLOSE_ON_ALL_TABS
 		)
 		#self.tabs = wx.Notebook(self.windowHandle)
-		for idx,view in enumerate(self.views):
+		for idx,view in enumerate(self.views.itervalues()):
 			if view.Title != "":
 				logger.info("Loading view '{}'".format(view.Title))
 				content = self.packContent(self.tabs, view=view)
 				self.tabs.AddPage(content, view.Title)
 				self.tabs.SetCloseButton(idx, view.Closeable)
-		self.registerShortcuts(self.views)
+		self.registerShortcuts(self.views.itervalues())
 		
 		self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnCloseTab)
 		#self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnTabClosed)
@@ -257,7 +269,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@param self: The ViewBuilder instance
 		"""
 		if self.isMount():
-			for view in self.views:
+			for view in self.views.itervalues():
 				if view._created:
 					view.updateView()
 					
@@ -314,10 +326,10 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@return: The view
 		"""
 		assert self.isMount()
-		for view in self.views:
-			if view.name == name:
-				return view
+		if view in self.view:
+			return self.views[name]
 		raise KeyError("There is no view '{}'".format(name))
+	__getitem__ = selectView
 		
 	def selectViewByIndex(self, index):
 		"""Select a view by its index in the list.
@@ -331,7 +343,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		assert self.isMount()
 		assert index >= 0
 		assert index < len(self.views)
-		return self.views[index]
+		keys = [name for name in self.views]
+		return self.views[keys[index]]
 		
 	def isViewVisisble(self, view):
 		"""Test if the view is visible, by checking if a tab with the
@@ -479,7 +492,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 			self.tree.AddColumn(text=header, width=width)
 		return self.tree
 		
-	def defaultField(self, field, event, label, action= None, ctrlopts=dict(), sizeropts=dict(position = (0,0), span=(1,1), border=3, flags=wx.TOP|wx.EXPAND)):
+	def defaultField(self, field, event, label, action= None, ctrlopts=dict(), position=(0,0), sizeropts=dict(span=(1,1), border=3, flag=wx.TOP|wx.EXPAND)):
 		"""Create and place a new component.
 		
 		@type  field: wx.Window
@@ -510,8 +523,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		if action is not None:
 			ctrl.Bind(event, action)
 		
-		self.sizer.Add(label, pos=sizeropts['position'], span=(1,1),  border=sizeropts['border'], flag=sizeropts['flags'])
-		self.sizer.Add(ctrl, pos=(sizeropts['position'][0],sizeropts['position'][1]+1), span=sizeropts['span'], border=sizeropts['border'], flag=sizeropts['flags'])
+		self.sizer.Add(label, pos=position, span=(1,1),  border=sizeropts['border'], flag=sizeropts['flag'])
+		self.sizer.Add(ctrl, pos=(position[0],position[1]+1), **sizeropts)
 		
 		return ctrl
 		
@@ -579,7 +592,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@type  style: int
 		@param style: The style of the TextCtrl
 		"""
-		return self.defaultField(wx.Button, wx.EVT_BUTTON, label, action, ctrlopts=dict(style=style, value=value), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		return self.defaultField(wx.Button, wx.EVT_BUTTON, label, action, ctrlopts=dict(style=style, value=value), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 	
 	def textField(self, label="", value = "", position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
 		"""Create a new text field (TextCtrl)
@@ -609,7 +622,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@type  style: int
 		@param style: The style of the TextCtrl
 		"""
-		return self.defaultField(wx.TextCtrl, wx.EVT_KILL_FOCUS, label, action, ctrlopts=dict(style=style, value=value), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		return self.defaultField(wx.TextCtrl, wx.EVT_KILL_FOCUS, label, action, ctrlopts=dict(style=style, value=value), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 		
 	def numberField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
 		"""Create a new number field (SpinCtrl)
@@ -645,7 +658,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@type  style: int
 		@param style: The style of the TextCtrl
 		"""
-		return self.defaultField(wx.SpinCtrl, wx.EVT_SPINCTRL, label, action, ctrlopts=dict(style=style, initial=value, min=min, max=max), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		return self.defaultField(wx.SpinCtrl, wx.EVT_SPINCTRL, label, action, ctrlopts=dict(style=style, initial=value, min=min, max=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 		
 	def sliderField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS):
 		"""Create a new number field (Slider)
@@ -681,7 +694,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@type  style: int
 		@param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
 		"""
-		return self.defaultField(wx.Slider, wx.EVT_SCROLL, label, action, ctrlopts=dict(style=style, value=value, minValue=min, maxValue=max), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		return self.defaultField(wx.Slider, wx.EVT_SCROLL, label, action, ctrlopts=dict(style=style, value=value, minValue=min, maxValue=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 	
 	def choiceField(self, label="", choices=(), selection="", position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
 		"""Create a new selection field (ComboBox)
@@ -714,7 +727,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@type  style: int
 		@param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
 		"""
-		return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=map(str, choices)), sizeropts=dict(position=position, span=span, border=border, flags=sizerFlags))
+		return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=map(str, choices)), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 
 		
 		
