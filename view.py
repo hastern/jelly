@@ -145,7 +145,7 @@ class ViewMenu(MenuBuilder):
 		return -1
 		
 class ViewBuilder(CoreWindowObject, ShortcutBuilder):	
-	"""The Menubuilder mainly consists of a list of views, that get inserted 
+	"""The ViewBuilder mainly consists of a list of views, that get inserted 
 	into an `auiNotebook`.
 	
 	As a plugin hook is automatically collects all view plugins, which are 
@@ -326,7 +326,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@return: The view
 		"""
 		assert self.isMount()
-		if view in self.view:
+		if name in self.views:
 			return self.views[name]
 		raise KeyError("There is no view '{}'".format(name))
 	__getitem__ = selectView
