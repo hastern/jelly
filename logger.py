@@ -26,29 +26,19 @@ class JellyEventLogHandler(logging.Handler):
 		return record, s
 		
 class JellyColorLogFormatter(logging.Formatter):
-	RESET   = "\033[0m"
-	TIME    = "\033[37m"
-	MESSAGE = "\033[37m"
-	LEVELS = {
-		"DEBUG"    : "\033[36m",
-		"INFO"     : "\033[37m",
-		"WARNING"  : "\033[33m",
-		"ERROR"    : "\033[1;31m",
-		"CRITICAL" : "\033[41;37m",
-	}
-	def __init__(self, fmt, use_color = True):
-		if not use_color:
-			fmt = fmt.replace("$_TIME","").replace("$_RESET","").replace("$_LEVEL","").replace("$_MESSAGE","")
+	NO_COLOR = {"$_LEVEL":"", "RESET":""}
+	def __init__(self, fmt, colors = {}):
 		logging.Formatter.__init__(self, fmt)
+		self.colors = colors
 	def format(self, record):
 		msg = logging.Formatter.format(self, record)
-		msg = msg.replace("$_LEVEL", self.LEVELS[record.levelname])
-		msg = msg.replace("$_MESSAGE", self.MESSAGE)
-		msg = msg.replace("$_TIME", self.TIME)
-		msg = msg.replace("$_RESET", self.RESET)
+		if record.levelname in self.colors:
+			msg = msg.replace("$_LEVEL", self.colors[record.levelname])
+		if "RESET" in self.colors:
+			msg = msg.replace("$_RESET", self.colors['RESET'])
 		return msg
 
-def configureLogger(name = "jelly", formatString = '$_TIME%(asctime)s$_RESET [$_LEVEL%(levelname)s$_RESET] %(name)s: $_MESSAGE%(message)s$_RESET', level = logging.DEBUG, colored = True):
+def configureLogger(name = "jelly", formatString = '%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET', level = logging.DEBUG, colors = None):
 	"""
 	Configure a logger for the python logging facility.
 	
@@ -70,11 +60,11 @@ def configureLogger(name = "jelly", formatString = '$_TIME%(asctime)s$_RESET [$_
 	logger = logging.getLogger(name)
 	streamHandler = logging.StreamHandler()
 	jellyHandler  = JellyEventLogHandler()
-	if colored:
-		streamHandler.setFormatter(JellyColorLogFormatter(formatString))
+	if colors is not None:
+		streamHandler.setFormatter(JellyColorLogFormatter(formatString, colors))
 	else:
-		streamHandler.setFormatter(JellyColorLogFormatter(formatString, False))
-	jellyHandler.setFormatter(JellyColorLogFormatter(formatString, False))
+		streamHandler.setFormatter(JellyColorLogFormatter(formatString, JellyColorLogFormatter.NO_COLOR))
+	jellyHandler.setFormatter(JellyColorLogFormatter(formatString, JellyColorLogFormatter.NO_COLOR))
 	logger.addHandler(streamHandler)
 	logger.addHandler(jellyHandler)
 	logger.setLevel(level)
