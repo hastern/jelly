@@ -8,6 +8,7 @@ This module provides a function to create such a logger without the need to
 know anything about the python logging facility.
 """
 
+import re
 import logging
 
 from event import EventBase
@@ -36,6 +37,11 @@ class JellyColorLogFormatter(logging.Formatter):
 			msg = msg.replace("$_LEVEL", self.colors[record.levelname])
 		if "RESET" in self.colors:
 			msg = msg.replace("$_RESET", self.colors['RESET'])
+		if "STRING" in self.colors:
+			single = re.compile("'([^']*)'")
+			double = re.compile('"([^"]*)"')
+			msg = single.sub("{}'\\1'{}".format(self.colors['STRING'], self.colors[record.levelname]), msg)
+			msg = double.sub('{}"\\1"{}'.format(self.colors['STRING'], self.colors[record.levelname]), msg)
 		return msg
 
 def configureLogger(name = "jelly", formatString = '%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET', level = logging.DEBUG, colors = None):
