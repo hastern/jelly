@@ -40,8 +40,20 @@ class JellyColorLogFormatter(logging.Formatter):
 		if "STRING" in self.colors:
 			single = re.compile("'([^']*)'")
 			double = re.compile('"([^"]*)"')
-			msg = single.sub("{}'\\1'{}".format(self.colors['STRING'], self.colors[record.levelname]), msg)
-			msg = double.sub('{}"\\1"{}'.format(self.colors['STRING'], self.colors[record.levelname]), msg)
+			msg = single.sub("{}'\\1'{}".format(self.colors['STRING'], self.colors['RESET']), msg)
+			msg = double.sub('{}"\\1"{}'.format(self.colors['STRING'], self.colors['RESET']), msg)
+		if "POINTER" in self.colors:
+			pat = re.compile("0x([0-9A-Fa-f]+)")
+			msg = pat.sub('{}0x\\1{}'.format(self.colors['POINTER'], self.colors['RESET']), msg)
+		if "REPR" in self.colors:
+			pat = re.compile("<([^']*)>")
+			msg = pat.sub("<{}\\1{}>".format(self.colors['REPR'], self.colors['RESET']), msg)
+		if "BRACKET" in self.colors:
+			pat = re.compile("([\(\)\{\}<>])")
+			msg = pat.sub("{}\\1{}".format(self.colors['BRACKET'], self.colors['RESET']), msg)
+		if "SYMBOL" in self.colors:
+			pat = re.compile("([^0-9])([-:.+*/,;])([^0-9])")
+			msg = pat.sub("\\1{}\\2{}\\3".format(self.colors['SYMBOL'], self.colors['RESET']), msg)
 		return msg
 
 def configureLogger(name = "jelly", formatString = '%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET', level = logging.DEBUG, colors = None):
