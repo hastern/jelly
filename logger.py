@@ -27,12 +27,14 @@ class JellyEventLogHandler(logging.Handler):
 		return record, s
 		
 class JellyColorLogFormatter(logging.Formatter):
-	NO_COLOR = {"$_LEVEL":"", "RESET":""}
+	NO_COLOR = {"DEBUG":"","INFO":"","WARNING":"","ERROR":"","CRITICAL":"", "RESET":""}
 	def __init__(self, fmt, colors = {}):
 		logging.Formatter.__init__(self, fmt)
 		self.colors = colors
+			
 	def format(self, record):
 		msg = logging.Formatter.format(self, record)
+		
 		if record.levelname in self.colors:
 			msg = msg.replace("$_LEVEL", self.colors[record.levelname])
 		if "RESET" in self.colors:
@@ -49,11 +51,11 @@ class JellyColorLogFormatter(logging.Formatter):
 			pat = re.compile("<([^']*)>")
 			msg = pat.sub("<{}\\1{}>".format(self.colors['REPR'], self.colors['RESET']), msg)
 		if "BRACKET" in self.colors:
-			pat = re.compile("([\(\)\{\}<>])")
+			pat = re.compile("([\(\)\{\}])")
 			msg = pat.sub("{}\\1{}".format(self.colors['BRACKET'], self.colors['RESET']), msg)
-		if "SYMBOL" in self.colors:
-			pat = re.compile("([^0-9])([-:.+*/,;])([^0-9])")
-			msg = pat.sub("\\1{}\\2{}\\3".format(self.colors['SYMBOL'], self.colors['RESET']), msg)
+		#if "SYMBOL" in self.colors:
+		#	pat = re.compile("([^0-9])([-:.+*/,;])([^0-9])")
+		#	msg = pat.sub("\\1{}\\2{}\\3".format(self.colors['SYMBOL'], self.colors['RESET']), msg)
 		return msg
 
 def configureLogger(name = "jelly", formatString = '%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET', level = logging.DEBUG, colors = None):
