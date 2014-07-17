@@ -70,6 +70,12 @@ class EnumMeta(type):
 				val = getattr(cls, member)
 				str += "\t{v.name:} = {v.value:}\n".format(v=val)
 		return str
+		
+	def __iter__(cls):
+		for member in cls.__dict__:
+			if not member.startswith("_"):
+				yield getattr(cls, member)
+			
 			
 		
 class Enumeration(object):
