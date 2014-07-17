@@ -44,7 +44,10 @@ class ConfigurationValue(object):
 		
 	def set(self, value):
 		if self.validation(value):
-			self.value = value
+			if isinstance(self.value, dict):
+				self.value.update(value)
+			else:
+				self.value = value
 		else:
 			raise ConfigurationValueInvalidError(value)
 			
