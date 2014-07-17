@@ -49,7 +49,7 @@ class EnumValue(object):
 	def __str__(self):
 		return "{c.host.__name__}.{c.name}".format(c=self)
 	def __repr__(self):
-		return self.value
+		return str(self.value)
 	def __int__(self):
 		return self.value
 		
