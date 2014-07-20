@@ -75,6 +75,10 @@ class EnumMeta(type):
 		for member in cls.__dict__:
 			if not member.startswith("_"):
 				yield getattr(cls, member)
+				
+	@property
+	def items(cls):
+		return [itm for itm in cls]
 			
 			
 		
