@@ -528,7 +528,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		
 		return ctrl
 		
-	def radioField(self, label, choices=list(), position = (0,0), span=(1,2), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0):
+	def radioField(self, label, choices=list(), selection="", position = (0,0), span=(1,2), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=0, major = 1):
 		"""Create and place a new component.
 		
 		@type  field: wx.Window
@@ -554,11 +554,14 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		assert hasattr(self, "sizer")
 		assert isinstance(self.sizer, wx.GridBagSizer)
 		
-		ctrl  = wx.RadioBox(self.pnl, label=label, choices=choices, majorDimension=1)
+		ctrl  = wx.RadioBox(self.pnl, label=label, choices=choices, majorDimension=major)
 		if action is not None:
 			ctrl.Bind(event, action)
 		ctrl.GetValue = ctrl.GetSelection
 		ctrl.SetValue = ctrl.SetSelection
+		
+		if selection in choices:
+			ctrl.SetSelection(choices.index(selection))
 		
 		self.sizer.Add(ctrl, pos=position, span=span, border=border, flag=sizerFlags)
 		
