@@ -28,15 +28,15 @@ class ConfigurationValue(object):
 		self.default = value if not custom else None
 		self.help = help
 		self.type = t if t is not None else type(value)
-		self.min = min
-		self.max = max
-		self.choices = None
+		self.min = min if min is not None else 0
+		self.max = max if max is not None else sys.maxint
+		self.choices = choices
 		self.custom = custom
 		if validation is None:
 			if self.choices is not None:
-				validation = lambda v: v in self.choices
-			elif self.min is not None and self.max is not None:
-				validation = lambda v: self.min <= v <= self.max
+				validation = lambda v,choices=self.choices: v in choices
+			elif min is not None and max is not None:
+				validation = lambda v,min=min, max=max: min <= v <= max
 			else:
 				validation = lambda v: True
 		assert callable(validation)
@@ -144,5 +144,20 @@ class UserPreferenceLoader(object):
 	
 	def __contains__(self, key):
 		return key in self.values
+		
+	def __iter__(self):
+		for key in self.values:
+			yield key
+		raise StopIteration()
+			
+	def itervalues(self):
+		for val in self.values.itervalues():
+			yield val
+		raise StopIteration()
+	def iteritems(self):
+		for key,val in self.values.iteritems():
+			yield key,val
+		raise StopIteration()
+			
 		
 
