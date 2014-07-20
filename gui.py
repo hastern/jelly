@@ -40,6 +40,8 @@ class InterfaceBuilder(wx.App):
 		@param self: The class instance
 		"""
 		logger.debug("Initialize interface builder")
+		self.helpProvider = wx.SimpleHelpProvider()
+		wx.HelpProvider_Set(self.helpProvider)
 		logger.info("Starting wxPython")
 		wx.App.__init__(self, redirect = False)
 	
