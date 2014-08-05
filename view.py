@@ -164,6 +164,8 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 	the class name"""
 	Closeable = True
 	"""By default, every view is closeable"""
+	Floating = False
+	"""By default, no window is floating"""
 	
 	def __init__(self, *args, **kwargs):
 		"""Initialize the ViewBuilder as a CoreWindowObject.
@@ -217,18 +219,19 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				 | aui.AUI_NB_SCROLL_BUTTONS 
 				 | aui.AUI_NB_DRAW_DND_TAB 
 				 | aui.AUI_NB_WINDOWLIST_BUTTON 
-				 | aui.AUI_NB_TAB_FLOAT 
+				 #| aui.AUI_NB_TAB_FLOAT 
 				 | aui.AUI_NB_TAB_EXTERNAL_MOVE
 				 | aui.AUI_NB_CLOSE_ON_ALL_TABS
 		)
 		#self.tabs = wx.Notebook(self.windowHandle)
 		for idx,view in enumerate(self.views.itervalues()):
-			if view.Title != "":
+			if view.Title != "" and view.Title != ViewBuilder.Title and not view.Floating:
 				logger.info("Loading view '{}'".format(view.Title))
 				content = self.packContent(self.tabs, view=view)
 				self.tabs.AddPage(content, view.Title)
 				self.tabs.SetCloseButton(idx, view.Closeable)
-		self.registerShortcuts(self.views.itervalues())
+		logger.info("Registering shortcuts")
+		self.registerShortcuts([view for view in self.views.itervalues()])
 		
 		self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnCloseTab)
 		#self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnTabClosed)
@@ -237,6 +240,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		PerspectiveSaveEvent.addHandler(self.savePerspective, 'fname')
 		PerspectiveResetEvent.addHandler(self.resetPerspective)
 		
+		logger.info("Trying to load the default perspective")
 		if os.path.exists("default.perspective"):
 			self.loadPerspective("default.perspective")
 			
@@ -365,7 +369,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 				return True
 		return False
 		
-	def showView(self, index):
+	def showView(self, index = None, name = None):
 		"""Eventhandler for PerspectiveViewSelectEvent
 		
 		@type  self: ViewBuilder
@@ -375,13 +379,26 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@param index: The view to be focused
 		"""
 		assert self.isMount()
-		logger.debug("Showing page {}".format(index))
-		view = self.selectViewByIndex(index)
-		if not self.isViewVisisble(view):
+		if index is not None:
+			logger.debug("Showing page {}".format(index))
+			view = self.selectViewByIndex(index)
+		elif name is not None:
+			logger.debug("Showing page '{}'".format(name))
+			view = self.selectView(name)
+		else:
+			raise TypeError("Neither an Index nor a Name was given to identify the view")
+		if view.Floating:
+			frame = self.showAsWindow(view = view)
+			frame.CentreOnScreen()
+			frame.Show()
+			frame.Refresh()
+		elif not self.isViewVisisble(view):
 			if view.Title != "":
 				content = self.packContent(self.tabs, view=view)
-				self.tabs.InsertPage(index, content, view.Title)
-		self.tabs.SetSelection(index)
+				if index is not None:
+					self.tabs.InsertPage(index, content, view.Title)
+		if index is not None:
+			self.tabs.SetSelection(index)
 			
 	def packContent(self, parent, name = None, view = None):
 		"""Packs all elements of a view into a panel.
@@ -430,7 +447,9 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
 		@return: The Frame of the view.
 		"""
 		assert self.isMount()
-		frame = wx.Frame(self.windowHandle)
+		if name is None:
+			name = view.Title
+		frame = wx.Frame(self.windowHandle, title=name, style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
 		content = self.packContent(frame, name, view)
 		return frame
 		
