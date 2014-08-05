@@ -44,7 +44,7 @@ class InterfaceBuilder(wx.App):
 		wx.HelpProvider_Set(self.helpProvider)
 		logger.info("Starting wxPython")
 		wx.App.__init__(self, redirect = False)
-	
+		
 	def prepare(self, title="Jelly Application", size=(1200,700)):
 		"""Prepare the window, by loading all views and menu-entires.
 		
@@ -76,7 +76,9 @@ class InterfaceBuilder(wx.App):
 		entries.append((wx.ACCEL_CTRL,  ord('q'), wx.ID_CLOSE))
 		entries.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE))
 		entries.append((wx.ACCEL_NORMAL,  wx.WXK_F5, self.refreshId))
+		keyMapping = {wx.ACCEL_CTRL:"CTRL + ", wx.ACCEL_SHIFT:"Shift + ", wx.ACCEL_NORMAL:""}
 		for special, key, func in self.view.getShortcuts():
+			logger.debug("Registering Shortcut {}{} to method {}".format(keyMapping[special], chr(key), func))
 			id = wx.NewId()
 			entries.append((special,key,id))
 			self.wHnd.Bind(wx.EVT_MENU, func, id = id)
