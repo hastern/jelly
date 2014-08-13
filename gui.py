@@ -86,7 +86,13 @@ class InterfaceBuilder(wx.App):
 		self.wHnd.SetAcceleratorTable(self.acceleratorTable)	
 		
 		self.SetTopWindow(self.wHnd)
+		
+		self.onPrepare()
+		
 		return self.wHnd
+		
+	def onPrepare(self):
+		pass
 		
 	def preparePlugins(self):
 		"""Fetch all methods from core plugins and attach them to this
