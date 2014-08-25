@@ -80,6 +80,14 @@ class EnumMeta(type):
 	def items(cls):
 		return [itm for itm in cls]
 			
+	def fromString(cls, s):
+		for itm in cls:
+			if s == str(itm):
+				return itm
+	def toString(cls, i):
+		for itm in cls:
+			if i == itm.value:
+				return str(itm)
 			
 		
 class Enumeration(object):
