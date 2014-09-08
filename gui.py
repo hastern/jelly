@@ -63,6 +63,8 @@ class InterfaceBuilder(wx.App):
 		"""
 		self.preparePlugins()
 		self.wHnd = wx.Frame(None, wx.NewId(), title, size=size, style=wx.DEFAULT_FRAME_STYLE)
+		self.onWHndCreate()
+		
 		self.menu = MenuBuilder(self.wHnd, self)
 		self.view = ViewBuilder(self.wHnd, self)
 		self.view.createView()
@@ -94,6 +96,9 @@ class InterfaceBuilder(wx.App):
 		self.onPrepare()
 		
 		return self.wHnd
+		
+	def onWHndCreate(self):
+		pass
 		
 	def onPrepare(self):
 		pass
