@@ -44,6 +44,10 @@ class InterfaceBuilder(wx.App):
 		wx.HelpProvider_Set(self.helpProvider)
 		logger.info("Starting wxPython")
 		wx.App.__init__(self, redirect = False)
+		self.onInit(*args, **kwargs)
+		
+	def onInit(self, *args, **kwargs):
+		pass
 		
 	def prepare(self, title="Jelly Application", size=(1200,700)):
 		"""Prepare the window, by loading all views and menu-entires.
