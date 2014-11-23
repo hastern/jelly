@@ -79,6 +79,10 @@ class EnumMeta(type):
 	@property
 	def items(cls):
 		return [itm for itm in cls]
+		
+	@property
+	def entries(cls):
+		return {int(itm):itm.name for itm in cls}
 			
 	def fromString(cls, s):
 		for itm in cls:
