@@ -14,14 +14,16 @@ logger = logging.getLogger(__name__)
 
 import wx
 import os.path
+import itertools
 
 # other jelly modules
 from plugin import PluginMount
 from menu import MenuBuilder
 from view import ViewBuilder
+from shortcut import ShortcutBuilder
 
 
-class InterfaceBuilder(wx.App):
+class InterfaceBuilder(wx.App, ShortcutBuilder):
 	"""Jelly Interface Builder
 
 	The interface builder is the application's core. 
@@ -49,6 +51,13 @@ class InterfaceBuilder(wx.App):
 	def onInit(self, *args, **kwargs):
 		pass
 		
+	def getShortcuts(self):
+		yield (wx.ACCEL_NORMAL, wx.WXK_F5, self.update)
+		
+	def getShortcutIds(self):
+		yield (wx.ACCEL_CTRL,   ord('q'),      wx.ID_CLOSE)
+		yield (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE)
+		
 	def prepare(self, title="Jelly Application", size=(1200,700)):
 		"""Prepare the window, by loading all views and menu-entires.
 		
@@ -71,20 +80,17 @@ class InterfaceBuilder(wx.App):
 		self.wHnd.SetMenuBar(self.menu.build())
 		self.statusbar = self.wHnd.CreateStatusBar()
 		
-		self.refreshId = wx.NewId()
 		self.wHnd.Bind(wx.EVT_MENU, self.OnCloseWindow, id = wx.ID_CLOSE)
 		self.wHnd.Bind(wx.EVT_SIZE, self.update)
 		self.wHnd.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
-		self.wHnd.Bind(wx.EVT_MENU, self.update, id = self.refreshId)
 		entries = []
+		entries.extend(self.getShortcutIds())
 		entries.extend(self.view.getShortcutIds())
 		entries.extend(self.menu.getShortcutIds())
-		entries.append((wx.ACCEL_CTRL,  ord('q'), wx.ID_CLOSE))
-		entries.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE))
-		entries.append((wx.ACCEL_NORMAL,  wx.WXK_F5, self.refreshId))
-		keyMapping = {wx.ACCEL_CTRL:"CTRL + ", wx.ACCEL_SHIFT:"Shift + ", wx.ACCEL_NORMAL:""}
-		for special, key, func in self.view.getShortcuts():
-			logger.debug("Registering Shortcut {}{} to method {}".format(keyMapping[special], chr(key), func))
+		specialMapping = {wx.ACCEL_CTRL:"CTRL + ", wx.ACCEL_SHIFT:"Shift + ", wx.ACCEL_NORMAL:""}
+		keyMapping = {id:"F{}".format(i) for id,i in zip([wx.WXK_F1,wx.WXK_F2,wx.WXK_F3,wx.WXK_F4,wx.WXK_F5,wx.WXK_F6,wx.WXK_F7,wx.WXK_F8,wx.WXK_F9,wx.WXK_F10,wx.WXK_F11,wx.WXK_F12], itertools.count(1))}
+		for special, key, func in itertools.chain(self.getShortcuts(), self.view.getShortcuts(), self.menu.getShortcuts()):
+			logger.debug("Registering Shortcut {}{} to method {}".format(specialMapping[special], keyMapping[key] if key in keyMapping else chr(key), func))
 			id = wx.NewId()
 			entries.append((special,key,id))
 			self.wHnd.Bind(wx.EVT_MENU, func, id = id)
