@@ -14,38 +14,38 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CoreObject(object):
-	"""Core Object
-	
-	A core object knows a reference to its core.
-	"""
-	def __init__(self, coreRef, *args, **kwargs):
-		"""
-		@type  self: CoreObject
-		@param self: The class instance
-		
-		@type  coreRef: InterfaceBuilder
-		@param coreRef: The application core.
-		"""
-		self.coreRef = coreRef
-		if hasattr(self, "onInit"):
-			self.onInit(*args, **kwargs)
-		
+    """Core Object
+    
+    A core object knows a reference to its core.
+    """
+    def __init__(self, coreRef, *args, **kwargs):
+        """
+        @type  self: CoreObject
+        @param self: The class instance
+        
+        @type  coreRef: InterfaceBuilder
+        @param coreRef: The application core.
+        """
+        self.coreRef = coreRef
+        if hasattr(self, "onInit"):
+            self.onInit(*args, **kwargs)
+
 class CoreWindowObject(CoreObject):
-	"""
-	In addition to the CoreObject a CoreWindowObject also knows 
-	the windowHandle of the main window.
-	"""
-	def __init__(self, windowHandle, coreRef, *args, **kwargs):
-		"""
-		@type  self: CoreObject
-		@param self: The class instance
-		
-		@type  windowHandle: wx.Frame
-		@param windowHandle: The main window of the application
-		
-		@type  coreRef: InterfaceBuilder
-		@param coreRef: The application core.
-		"""
-	
-		self.windowHandle = windowHandle
-		CoreObject.__init__(self, coreRef, *args, **kwargs)
+    """
+    In addition to the CoreObject a CoreWindowObject also knows 
+    the windowHandle of the main window.
+    """
+    def __init__(self, windowHandle, coreRef, *args, **kwargs):
+        """
+        @type  self: CoreObject
+        @param self: The class instance
+        
+        @type  windowHandle: wx.Frame
+        @param windowHandle: The main window of the application
+        
+        @type  coreRef: InterfaceBuilder
+        @param coreRef: The application core.
+        """
+    
+        self.windowHandle = windowHandle
+        CoreObject.__init__(self, coreRef, *args, **kwargs)

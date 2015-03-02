@@ -2,13 +2,13 @@
 # author: Hanno Sternberg
 # 
 
-NAME 	= jelly
+NAME    = jelly
 
-PY	=python
-SETUP	=$(PY) setup.py
-DOC	=epydoc
+PY      =python
+SETUP   =$(PY) setup.py
+DOC     =epydoc
 
-SRC_EGG	=$(shell $(SETUP) --fullname)-py2.7.egg
+SRC_EGG =$(shell $(SETUP) --fullname)-py2.7.egg
 
 .PHONY: build egg dist clean doc license description info run
 
