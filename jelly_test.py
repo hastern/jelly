@@ -161,6 +161,42 @@ class StructureTests(unittest.TestCase):
 		self.assertIs(struct.kind, TestStructure)
 		self.assertIsNot(struct.kind, structure.Structure)
 		
+		
+class EventTests(unittest.TestCase):
+	
+	def testFireEvent(self):
+		catch = "testFireEvent"
+		class TestEvent(event.EventBase):
+			__slots__ = ['value']
+		class TestEventCatcher(object):
+			def __init__(self):
+				TestEvent.addHandler(slf.testEventHandler, 'value')
+			def testEventHandler(self, value):
+				global catch 
+				catch = value
+		
+		catcher = TestEventCatcher()
+		TestEvent.fire("Shots fired")
+		self.assertEqual(self.catch, "Shots fired")
+
+	def testDispatchDecorator(self):
+		catch = "testDispatchDecorator"
+		class TestEvent(event.EventBase):
+			__slots__ = ['value']
+		class TestEventCatcher(object):
+			def __init__(self):
+				TestEvent.addHandler(slf.testEventHandler, 'value')
+			def testEventHandler(self, value):
+				global catch
+				catch = value
+		
+		@TestEvent.dispatcher
+		def testEventDispatcher(self):
+			return "Shots fired"
+		catcher = TestEventCatcher()
+		testEventDispatcher(None)
+		self.assertEqual(self.catch, "Shots fired")
+	
 
 def main():
 	unittest.main(verbosity=2)
