@@ -682,7 +682,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         """
         return self.defaultField(wx.SpinCtrl, wx.EVT_SPINCTRL, label, action, ctrlopts=dict(style=style, initial=value, min=min, max=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
         
-    def sliderField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS):
+    def sliderField(self, label="", value = 0, min=0, max=100, position = (0,0), span=(1,1), border=3, sizerFlags=wx.TOP|wx.EXPAND, action = None, style=wx.SL_AUTOTICKS):
         """Create a new number field (Slider)
         Wraps the defaultField() Method
         
@@ -714,7 +714,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param action: The event handler for the KILL_FOCUS event
         
         @type  style: int
-        @param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
+        @param style: The style of the TextCtrl (Default: wx.SL_AUTOTICKS)
         """
         return self.defaultField(wx.Slider, wx.EVT_SCROLL, label, action, ctrlopts=dict(style=style, value=value, minValue=min, maxValue=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
     
