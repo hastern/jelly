@@ -612,7 +612,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param action: The event handler for the KILL_FOCUS event
         
         @type  style: int
-        @param style: The style of the TextCtrl
+        @param style: The style of the Button
         """
         return self.defaultField(wx.Button, wx.EVT_BUTTON, label, action, ctrlopts=dict(style=style, value=value), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
     
@@ -678,7 +678,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param action: The event handler for the KILL_FOCUS event
         
         @type  style: int
-        @param style: The style of the TextCtrl
+        @param style: The style of the SpinCtrl
         """
         return self.defaultField(wx.SpinCtrl, wx.EVT_SPINCTRL, label, action, ctrlopts=dict(style=style, initial=value, min=min, max=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
         
@@ -714,7 +714,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param action: The event handler for the KILL_FOCUS event
         
         @type  style: int
-        @param style: The style of the TextCtrl (Default: wx.SL_AUTOTICKS)
+        @param style: The style of the Slider (Default: wx.SL_AUTOTICKS)
         """
         return self.defaultField(wx.Slider, wx.EVT_SCROLL, label, action, ctrlopts=dict(style=style, value=value, minValue=min, maxValue=max), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
     
@@ -747,7 +747,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param action: The event handler for the KILL_FOCUS event
         
         @type  style: int
-        @param style: The style of the TextCtrl (Default: wx.SL_MIN_MAX_LABELS|wx.SL_AUTOTICKS)
+        @param style: The style of the ComboBox
         """
         return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=map(str, choices)), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
 
