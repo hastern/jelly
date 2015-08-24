@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 
 __package__ = "jelly"
-__all__ = ['view', 'logger', 'baseobjs', 'event','struct','shortcuts','menu','plugin','gui']
+__all__ = ['view', 'logger', 'baseobjs', 'event', 'structure', 'shortcuts', 'menu', 'plugin', 'gui']
