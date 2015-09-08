@@ -17,13 +17,13 @@ import os.path
 import itertools
 
 # other jelly modules
-from plugin import PluginMount
+from plugin import MixinMount
 from menu import MenuBuilder
 from view import ViewBuilder
 from shortcut import ShortcutBuilder
 
 
-class InterfaceBuilder(wx.App, ShortcutBuilder):
+class InterfaceBuilder(wx.App):
     """Jelly Interface Builder
 
     The interface builder is the application's core.
@@ -33,7 +33,7 @@ class InterfaceBuilder(wx.App, ShortcutBuilder):
     the interface. It will automatically load all available views and menus
     (meaning: in any loaded module).
     """
-    __metaclass__ = PluginMount
+    __metaclass__ = MixinMount
 
     def __init__(self, *args, **kwargs):
         """
@@ -46,17 +46,14 @@ class InterfaceBuilder(wx.App, ShortcutBuilder):
         wx.HelpProvider_Set(self.helpProvider)
         logger.info("Starting wxPython")
         wx.App.__init__(self, redirect=False)
-        self.onInit(*args, **kwargs)
 
-    def onInit(self, *args, **kwargs):
-        pass
-
-    def getShortcuts(self):
-        yield (wx.ACCEL_NORMAL, wx.WXK_F5, self.update)
-
-    def getShortcutIds(self):
-        yield (wx.ACCEL_CTRL, ord('q'), wx.ID_CLOSE)
-        yield (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE)
+        self.shortcuts = [
+            (wx.ACCEL_NORMAL, wx.WXK_F5, self.update),
+        ]
+        self.shortcutIds = [
+            (wx.ACCEL_CTRL, ord('q'), wx.ID_CLOSE),
+            (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE),
+        ]
 
     def prepare(self, title="Jelly Application", size=(1200, 700)):
         """Prepare the window, by loading all views and menu-entires.
@@ -70,7 +67,6 @@ class InterfaceBuilder(wx.App, ShortcutBuilder):
         @type  size: tuple
         @param size: The default size of the window
         """
-        self.preparePlugins()
         self.wHnd = wx.Frame(None, wx.NewId(), title, size=size, style=wx.DEFAULT_FRAME_STYLE)
         self.onWHndCreate()
 
@@ -84,12 +80,12 @@ class InterfaceBuilder(wx.App, ShortcutBuilder):
         self.wHnd.Bind(wx.EVT_SIZE, self.update)
         self.wHnd.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         entries = []
-        entries.extend(self.getShortcutIds())
+        entries.extend(self.shortcutIds)
         entries.extend(self.view.getShortcutIds())
         entries.extend(self.menu.getShortcutIds())
         specialMapping = {wx.ACCEL_CTRL: "CTRL + ", wx.ACCEL_SHIFT: "Shift + ", wx.ACCEL_NORMAL: ""}
         keyMapping = {id: "F{}".format(i) for id, i in zip([wx.WXK_F1, wx.WXK_F2, wx.WXK_F3, wx.WXK_F4, wx.WXK_F5, wx.WXK_F6, wx.WXK_F7, wx.WXK_F8, wx.WXK_F9, wx.WXK_F10, wx.WXK_F11, wx.WXK_F12], itertools.count(1))}
-        for special, key, func in itertools.chain(self.getShortcuts(), self.view.getShortcuts(), self.menu.getShortcuts()):
+        for special, key, func in itertools.chain(self.shortcuts, self.view.getShortcuts(), self.menu.getShortcuts()):
             logger.debug("Registering Shortcut {}{} to method {}".format(specialMapping[special], keyMapping[key] if key in keyMapping else chr(key), func))
             id = wx.NewId()
             entries.append((special, key, id))
@@ -108,39 +104,6 @@ class InterfaceBuilder(wx.App, ShortcutBuilder):
 
     def onPrepare(self):
         pass
-
-    def preparePlugins(self):
-        """Fetch all methods from core plugins and attach them to this
-        core.
-
-        @type  self: InterfaceBuilder
-        @param self: The class instance
-        """
-        logger.info("Loading core plugins")
-        self.plugins = InterfaceBuilder.loadPlugins(caller=self)
-        logger.debug("Collecting plugin methods for {}".format(self.__class__))
-        self.pluginMethods = {}
-        for plug in self.plugins:
-            logger.debug("\tPlugin: {}".format(plug.__class__))
-            for k in plug.__dict__:
-                e = plug.__dict__[k]
-                if not (k.startswidth("__") or k.endswidth("__")) and hasattr(e, "__call__"):
-                    self.pluginMethods[k] = (plug, e)
-
-    def __getattr__(self, attr):
-        """Override default attribute lookup, to enable plugin methods to
-        be called from the core hook.
-
-        @type  self: InterfaceBuilder
-        @param self: The class instance
-        """
-        if attr in self.__dict__:
-            return self.__dict__[attr]
-        elif attr in self.pluginMethods:
-            plugin, method = self.pluginMethods[attr]
-            return plugin.method
-        else:
-            return super(wx.App, self).__getattr__(attr)
 
     def update(self, event=None):
         """Eventhandler for resize events.
