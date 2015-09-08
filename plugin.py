@@ -177,3 +177,48 @@ class TaxonomyPluginMount(type):
             if k not in exclude:
                 d[k] = [e] if k not in d else d[k] + [e]
         return d
+
+
+class MixinMount(type):
+    """Metaclass to mix all child methods into the base parent.
+    Every child class object will be a reference to the base object.
+
+    The init functions of all childrens will be called consecutivly.
+    """
+
+    def __new__(cls, name, bases, attrs):
+        """Override the __new__ method the create a singleton class
+        object"""
+        def init(self, *args, **kwargs):
+            """Call all initializer method of all child functions"""
+            for init in self.__init_collection__:
+                init(self, *args, **kwargs)
+
+        if not hasattr(cls, "instance"):
+            # 1. Object -> Base class: create class object instance
+            if "__init__" in attrs:
+                attrs['__init_collection__'] = [attrs['__init__']]
+            else:
+                attrs['__init_collection__'] = []
+            attrs['__init__'] = init
+            logger.debug("Creating mixinmount {}".format(name))
+            cls.instance = super(MixinMount, cls).__new__(cls, name, bases, attrs)
+        elif "__init__" in attrs:
+            # Every other object: Append all non-dunderscore methods
+            logger.debug("Appending methods from '{}' to {}".format(name, cls.instance))
+            cls.instance.__init_collection__.append(attrs["__init__"])
+            for name, attr in attrs.iteritems():
+                if not name.startswith("__"):
+                    if hasattr(cls.instance, name):
+                        logger.warning("Member '{}' already exists in {}".format(name, cls.instance))
+                    setattr(cls.instance, name, attr)
+        # Emulate multi inheritance
+        if len(bases) > 1:
+            for base in bases:
+                if base != cls.instance:
+                    for name, member in base.__dict__.iteritems():
+                        if not name.startswith("__"):
+                            if hasattr(cls.instance, name):
+                                logger.warning("Mixin-member '{}' from {} already exists in {}".format(name, base, cls.instance))
+                            setattr(cls.instance, name, member)
+        return cls.instance
