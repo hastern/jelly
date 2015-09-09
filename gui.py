@@ -183,6 +183,7 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The cpation of the dialog
         """
+        logger.error(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_ERROR) == wx.OK
 
     def displayInformation(self, message, caption='Warning'):
@@ -197,6 +198,7 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The cpation of the dialog
         """
+        logger.info(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_INFORMATION) == wx.OK
 
     def displayQuestion(self, message, caption='Question'):
@@ -211,6 +213,7 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The cpation of the dialog
         """
+        logger.info(message)
         return self.messageDialog(message, caption, wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
 
     def loadFileDialog(self, message="Load File", fileTypes=None, dir=wx.EmptyString):
