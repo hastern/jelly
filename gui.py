@@ -168,8 +168,11 @@ class InterfaceBuilder(wx.App):
 
         @param style: The dialog style (Buttons & Icon)
         """
-        dial = wx.MessageDialog(None, message, caption, style)
-        return dial.ShowModal()
+        if self.wHnd.IsShown():
+            dial = wx.MessageDialog(None, message, caption, style)
+            return dial.ShowModal()
+        else:
+            return True
 
     def displayError(self, message, caption='An error occured'):
         """Displays an error message.
