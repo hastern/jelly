@@ -189,7 +189,22 @@ class InterfaceBuilder(wx.App):
         logger.error(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_ERROR) == wx.OK
 
-    def displayInformation(self, message, caption='Warning'):
+    def displayWarning(self, message, caption='Warning'):
+        """Displays a warning message.
+
+        @type  self: InterfaceBuilder
+        @param self: The class instance
+
+        @type  message: str
+        @param message: The message of the dialog
+
+        @type  caption: str
+        @param message: The caption of the dialog
+        """
+        logger.warning(message)
+        return self.messageDialog(message, caption, wx.OK | wx.ICON_EXCLAMATION) == wx.OK
+
+    def displayInformation(self, message, caption='Information'):
         """Displays an information message.
 
         @type  self: InterfaceBuilder
