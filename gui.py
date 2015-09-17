@@ -164,7 +164,7 @@ class InterfaceBuilder(wx.App):
         @param message: The message of the dialog
 
         @type  caption: str
-        @param message: The cpation of the dialog
+        @param message: The caption of the dialog
 
         @param style: The dialog style (Buttons & Icon)
         """
@@ -184,7 +184,7 @@ class InterfaceBuilder(wx.App):
         @param message: The message of the dialog
 
         @type  caption: str
-        @param message: The cpation of the dialog
+        @param message: The caption of the dialog
         """
         logger.error(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_ERROR) == wx.OK
@@ -214,7 +214,7 @@ class InterfaceBuilder(wx.App):
         @param message: The message of the dialog
 
         @type  caption: str
-        @param message: The cpation of the dialog
+        @param message: The caption of the dialog
         """
         logger.info(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_INFORMATION) == wx.OK
