@@ -31,14 +31,17 @@ class CommandLine(object):
         # Build the ArgumentParser
         arg_parser = argparse.ArgumentParser(name)
         for name, arg in self.arguments.iteritems():
-            arg_parser.add_argument("--{}".format(name),
-                                    nargs=len(arg.args),
-                                    metavar=arg.args,
-                                    type=arg.type,
-                                    default=arg.default,
-                                    action=arg.action,
-                                    help=arg.help
-                                    )
+            arg_parser.add_argument(
+                "--{}".format(name),
+                **{key: val for key, val in filter(lambda e: e is not None, [
+                    ("nargs", len(arg.args)) if len(arg.args) > 0 else None,
+                    ("metavar", arg.args) if arg.action == "store" else None,
+                    ("type", arg.type) if arg.action == "store" else None,
+                    ("default", arg.default),
+                    ("action", arg.action),
+                    ("help", arg.help)
+                ])}
+            )
             call_buckets[arg.weight].append(arg)
         # Add batch argument to suppress gui
         arg_parser.add_argument("--batch", "-b", "--no-gui",
@@ -54,7 +57,7 @@ class CommandLine(object):
             for arg in call_buckets[weight]:
                 params = getattr(args, arg.name.replace("-", "_"))
                 method = getattr(core, arg.method)
-                if params is not None or params != arg.default:
+                if params is not None and params != arg.default:
                     method(*params)
         return not args.batch
 
