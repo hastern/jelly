@@ -58,7 +58,10 @@ class CommandLine(object):
                 params = getattr(args, arg.name.replace("-", "_"))
                 method = getattr(core, arg.method)
                 if params is not None and params != arg.default:
-                    method(*params)
+                    if isinstance(params, list):
+                        method(*params)
+                    else:
+                        method()
         return not args.batch
 
     def __init__(self, name, *args, **flags):
