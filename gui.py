@@ -46,6 +46,7 @@ class InterfaceBuilder(wx.App):
         wx.HelpProvider_Set(self.helpProvider)
         logger.info("Starting wxPython")
         wx.App.__init__(self, redirect=False)
+        self.wHnd = None
 
         self.shortcuts = [
             (wx.ACCEL_NORMAL, wx.WXK_F5, self.update),
@@ -168,7 +169,7 @@ class InterfaceBuilder(wx.App):
 
         @param style: The dialog style (Buttons & Icon)
         """
-        if self.wHnd.IsShown():
+        if self.wHnd is not None and self.wHnd.IsShown():
             dial = wx.MessageDialog(None, message, caption, style)
             return dial.ShowModal()
         else:
