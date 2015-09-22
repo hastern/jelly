@@ -68,7 +68,15 @@ class JellyColorLogFormatter(logging.Formatter):
         return msg
 
 
-def configureLogger(name="jelly", formatString='%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET', level=logging.DEBUG, colors=None):
+# Dictionary to reference
+logFiles = {}
+
+
+def configureLogger(name="jelly",
+                    formatString='%(asctime)s [$_LEVEL%(levelname)s$_RESET] %(name)s: $_LEVEL%(message)s$_RESET',
+                    level=logging.DEBUG,
+                    colors=None,
+                    file=None):
     """
     Configure a logger for the python logging facility.
 
@@ -97,5 +105,11 @@ def configureLogger(name="jelly", formatString='%(asctime)s [$_LEVEL%(levelname)
     jellyHandler.setFormatter(JellyColorLogFormatter(formatString, JellyColorLogFormatter.NO_COLOR))
     logger.addHandler(streamHandler)
     logger.addHandler(jellyHandler)
+    if file is not None:
+        if file not in logFiles:
+            logFiles[file] = logging.FileHandler(file, mode="w")
+        fileHandler = logFiles[file]
+        fileHandler.setFormatter(JellyColorLogFormatter(formatString, JellyColorLogFormatter.NO_COLOR))
+        logger.addHandler(fileHandler)
     logger.setLevel(level)
     return logger
