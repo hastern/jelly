@@ -88,6 +88,12 @@ class PluginMount(type):
         caller = kwargs['caller'].__class__ if 'caller' in kwargs else None
         return [p(*args, **kwargs) for p in cls.plugins if p is not caller]
 
+    def __iter__(self):
+        """Iterate all plugins
+        """
+        for plugin in self.plugins:
+            yield plugin
+
 
 class TaxonomyPluginMount(type):
     """PluginMount for plugins with a taxonomy on its plugins
@@ -136,6 +142,12 @@ class TaxonomyPluginMount(type):
         @return: The class
         """
         return cls.taxonomy[key]
+
+    def __iter__(cls):
+        """ Iterate the class object to get all plugins
+        """
+        for key, plugin in cls.taxonomy.iteritems():
+            yield plugin
 
     def getFQClassName(cls):
         """
