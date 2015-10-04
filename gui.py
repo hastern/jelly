@@ -47,6 +47,7 @@ class InterfaceBuilder(wx.App):
         logger.info("Starting wxPython")
         wx.App.__init__(self, redirect=False)
         self.wHnd = None
+        self.suppress_dialogs = False
 
         self.shortcuts = [
             (wx.ACCEL_NORMAL, wx.WXK_F5, self.update),
@@ -124,8 +125,7 @@ class InterfaceBuilder(wx.App):
         @type  self: InterfaceBuilder
         @param self: The class instance
         """
-        ret = self.displayQuestion('Are you sure to quit?')
-        if ret == wx.ID_YES:
+        if self.displayQuestion('Are you sure to quit?'):
             self.wHnd.Destroy()
             self.ExitMainLoop()
 
@@ -169,13 +169,13 @@ class InterfaceBuilder(wx.App):
 
         @param style: The dialog style (Buttons & Icon)
         """
-        if self.wHnd is not None and self.wHnd.IsShown():
+        if self.wHnd is not None and self.wHnd.IsShown() and not self.suppress_dialogs:
             dial = wx.MessageDialog(None, message, caption, style)
             return dial.ShowModal()
         else:
             return True
 
-    def displayError(self, message, caption='An error occured'):
+    def displayError(self, message, caption='An error occured', logname=None):
         """Displays an error message.
 
         @type  self: InterfaceBuilder
@@ -187,10 +187,13 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The caption of the dialog
         """
-        logger.error(message)
+        if logname is None:
+            logger.error(message)
+        else:
+            logging.getLogger(logname).error(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_ERROR) == wx.OK
 
-    def displayWarning(self, message, caption='Warning'):
+    def displayWarning(self, message, caption='Warning', logname=None):
         """Displays a warning message.
 
         @type  self: InterfaceBuilder
@@ -202,10 +205,13 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The caption of the dialog
         """
-        logger.warning(message)
+        if logname is None:
+            logger.warning(message)
+        else:
+            logging.getLogger(logname).warning(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_EXCLAMATION) == wx.OK
 
-    def displayInformation(self, message, caption='Information'):
+    def displayInformation(self, message, caption='Information', logname=None):
         """Displays an information message.
 
         @type  self: InterfaceBuilder
@@ -217,10 +223,13 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The caption of the dialog
         """
-        logger.info(message)
+        if logname is None:
+            logger.info(message)
+        else:
+            logging.getLogger(logname).info(message)
         return self.messageDialog(message, caption, wx.OK | wx.ICON_INFORMATION) == wx.OK
 
-    def displayQuestion(self, message, caption='Question'):
+    def displayQuestion(self, message, caption='Question', logname=None):
         """Displays a question.
 
         @type  self: InterfaceBuilder
@@ -232,8 +241,11 @@ class InterfaceBuilder(wx.App):
         @type  caption: str
         @param message: The cpation of the dialog
         """
-        logger.info(message)
-        return self.messageDialog(message, caption, wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        if logname is None:
+            logger.info(message)
+        else:
+            logging.getLogger(logname).info(message)
+        return self.messageDialog(message, caption, wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION) == wx.ID_YES
 
     def loadFileDialog(self, message="Load File", fileTypes=None, dir=wx.EmptyString):
         """File load dialog
