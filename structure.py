@@ -35,6 +35,16 @@ class Structure(object):
     def kind(self):
         return self.__class__
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if self.__slots__ != other.__slots__:
+            return False
+        for attr in self.__slots__:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
 
 class EnumValue(object):
     """Value for an enumeration"""
