@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 
+import sys
 import argparse
 import collections
 
@@ -47,7 +48,7 @@ class CommandLine(object):
         arg_parser.add_argument("--batch", "-b", "--no-gui",
                                 help="Run in batch mode (Don't show the gui)",
                                 action="store_true",
-                                default=False)
+                                default=sys.flags.interactive)
         # Parse all arguments
         args = arg_parser.parse_args()
         # Check all actions
