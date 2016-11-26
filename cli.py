@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CommandLine(object):
+class CommandLine:
     """Create a command line interface for the application.
     Can call any core method as action.
 

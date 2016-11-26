@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Structure(object):
+class Structure:
     """Simple struct-like object.
     members are controlled via the contents of the __slots__ list."""
     __slots__ = []
@@ -16,9 +16,13 @@ class Structure(object):
     __defaults__.keys() must be a (inproper) subset __slots__."""
 
     def __new__(cls, *args, **kwargs):
-        self = super(Structure, cls).__new__(cls, *args, **kwargs)
+        self = super(Structure, cls).__new__(cls)
         # Initialize all members with None
-        map(lambda k: setattr(self, k, cls.__defaults__[k]() if k in cls.__defaults__ else None), cls.__slots__)
+        for slot in cls.__slots__:
+            if slot in cls.__defaults__:
+                setattr(self, slot, cls.__defaults__[slot]())
+            else:
+                setattr(self, slot, None)
         return self
 
     def __init__(self, *args, **kwargs):
@@ -27,9 +31,12 @@ class Structure(object):
         @param **kwargs: Keyword arguments
         """
         # Positional definition of members
-        map(lambda (name, val): setattr(self, name, val), zip(self.__slots__, args))
+        for name, val in zip(self.__slots__, args):
+            setattr(self, name, val)
         # Keyword definition of members
-        map(lambda k: setattr(self, k, kwargs[k]), filter(lambda k: k in self.__slots__, kwargs))
+        for name, val in kwargs.items():
+            if name in self.__slots__:
+                setattr(self, name, val)
 
     @property
     def kind(self):
@@ -46,7 +53,7 @@ class Structure(object):
         return True
 
 
-class EnumValue(object):
+class EnumValue:
     """Value for an enumeration"""
     def __init__(self, host, name, value):
         """Create a new enumeration value"""
@@ -111,6 +118,6 @@ class EnumMeta(type):
                 return str(itm)
 
 
-class Enumeration(object):
+class Enumeration(object, metaclass=EnumMeta):
     """An enumeration like object"""
-    __metaclass__ = EnumMeta
+    pass

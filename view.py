@@ -21,15 +21,15 @@ import os.path
 from collections import OrderedDict
 
 import wx
-import wx.gizmos
+import wx.dataview
 import wx.lib.agw.aui as aui
 
 # other jelly modules
-from baseobjs import CoreWindowObject
-from plugin import PluginMount
-from shortcut import ShortcutBuilder
-from menu import MenuBuilder
-from event import SkipEvent, EventBase
+from .baseobjs import CoreWindowObject
+from .plugin import PluginMount
+from .shortcut import ShortcutBuilder
+from .menu import MenuBuilder
+from .event import SkipEvent, EventBase
 
 
 class DuplicateViewNameError(Exception):
@@ -105,7 +105,7 @@ class ViewMenu(MenuBuilder):
             self.windowHandle.Unbind(itm)
             self.menuWindows.Delete(itm.GetId())
         # Update labels
-        for idx, view in enumerate(self.coreRef.view.views.itervalues()):
+        for idx, view in enumerate(self.coreRef.view.views.values()):
             itm = self.menuWindows.FindItemByPosition(idx)
             itm.SetItemLabel(view.Title)
             itm.SetHelp("Display '{}'".format(view.Title))
@@ -151,7 +151,7 @@ class ViewMenu(MenuBuilder):
         return -1
 
 
-class ViewBuilder(CoreWindowObject, ShortcutBuilder):
+class ViewBuilder(CoreWindowObject, ShortcutBuilder, metaclass=PluginMount):
     """The ViewBuilder mainly consists of a list of views, that get inserted
     into an `auiNotebook`.
 
@@ -162,7 +162,6 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
     - `createView(self, parent)` for creating the view elements
     - `updateView(self)` for updating the view elements
     """
-    __metaclass__ = PluginMount
     Title = 'View'
     """The title of the view, gets display as the caption of the
     corresponding tab."""
@@ -230,14 +229,14 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
                                     aui.AUI_NB_CLOSE_ON_ALL_TABS
                                     )
         # self.tabs = wx.Notebook(self.windowHandle)
-        for idx, view in enumerate(self.views.itervalues()):
+        for idx, view in enumerate(self.views.values()):
             if view.Title != "" and view.Title != ViewBuilder.Title and not view.Floating:
                 logger.info("Loading view '{}'".format(view.Title))
                 content = self.packContent(self.tabs, view=view)
                 self.tabs.AddPage(content, view.Title)
                 self.tabs.SetCloseButton(idx, view.Closeable)
         logger.info("Registering shortcuts")
-        self.registerShortcuts([view for view in self.views.itervalues()])
+        self.registerShortcuts([view for view in self.views.values()])
 
         self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.OnCloseTab)
         # self.tabs.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.OnTabClosed)
@@ -279,7 +278,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @param self: The ViewBuilder instance
         """
         if self.isMount():
-            for view in self.views.itervalues():
+            for view in self.views.values():
                 if view._created:
                     view.updateView()
 
@@ -369,7 +368,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @rtype:  Boolean
         """
         assert self.isMount()
-        for idx in xrange(self.tabs.GetPageCount()):
+        for idx in range(self.tabs.GetPageCount()):
             lbl = self.tabs.GetPageText(idx)
             if lbl == view.Title:
                 return True
@@ -511,7 +510,7 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
                   wx.TR_HIDE_ROOT
 
         """
-        self.tree = wx.gizmos.TreeListCtrl(parent, id=wx.ID_ANY, style=wx.SIMPLE_BORDER | wx.TR_HAS_BUTTONS | wx.TR_SINGLE | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_HIDE_ROOT)
+        self.tree = wx.dataview.TreeListCtrl(parent, id=wx.ID_ANY, style=wx.SIMPLE_BORDER | wx.TR_HAS_BUTTONS | wx.TR_SINGLE | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_HIDE_ROOT)
         for header, width in headers:
             self.tree.AddColumn(text=header, width=width)
         return self.tree
@@ -754,4 +753,4 @@ class ViewBuilder(CoreWindowObject, ShortcutBuilder):
         @type  style: int
         @param style: The style of the ComboBox
         """
-        return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=map(str, choices)), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))
+        return self.defaultField(wx.ComboBox, wx.EVT_COMBOBOX, label, action, ctrlopts=dict(style=style, value=selection, choices=list(map(str, choices))), position=position, sizeropts=dict(span=span, border=border, flag=sizerFlags))

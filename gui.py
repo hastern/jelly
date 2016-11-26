@@ -17,13 +17,13 @@ import os.path
 import itertools
 
 # other jelly modules
-from plugin import MixinMount
-from menu import MenuBuilder
-from view import ViewBuilder
-from shortcut import ShortcutBuilder
+from .plugin import MixinMount
+from .menu import MenuBuilder
+from .view import ViewBuilder
+from .shortcut import ShortcutBuilder
 
 
-class InterfaceBuilder(wx.App):
+class InterfaceBuilder(metaclass=MixinMount):
     """Jelly Interface Builder
 
     The interface builder is the application's core.
@@ -33,7 +33,6 @@ class InterfaceBuilder(wx.App):
     the interface. It will automatically load all available views and menus
     (meaning: in any loaded module).
     """
-    __metaclass__ = MixinMount
 
     def __init__(self, *args, **kwargs):
         """
@@ -43,9 +42,9 @@ class InterfaceBuilder(wx.App):
         """
         logger.debug("Initialize interface builder")
         self.helpProvider = wx.SimpleHelpProvider()
-        wx.HelpProvider_Set(self.helpProvider)
+        wx.HelpProvider.Set(self.helpProvider)
         logger.info("Starting wxPython")
-        wx.App.__init__(self, redirect=False)
+        self.app = wx.App(redirect=False)
         self.wHnd = None
         self.suppress_dialogs = False
 
@@ -95,7 +94,7 @@ class InterfaceBuilder(wx.App):
         self.acceleratorTable = wx.AcceleratorTable(entries)
         self.wHnd.SetAcceleratorTable(self.acceleratorTable)
 
-        self.SetTopWindow(self.wHnd)
+        self.app.SetTopWindow(self.wHnd)
 
         self.onPrepare()
 
@@ -127,7 +126,7 @@ class InterfaceBuilder(wx.App):
         """
         if self.displayQuestion('Are you sure to quit?'):
             self.wHnd.Destroy()
-            self.ExitMainLoop()
+            self.app.ExitMainLoop()
 
     def fileDialog(self, mode, message, fileTypes=None, dir=wx.EmptyString):
         """Displays a file dialog to open or save a file.
@@ -285,4 +284,4 @@ class InterfaceBuilder(wx.App):
         """
         self.wHnd.Centre()
         self.wHnd.Show()
-        self.MainLoop()
+        self.app.MainLoop()

@@ -13,20 +13,22 @@ import menu
 import shortcut
 import logger
 
+logger.configureLogger()
+
 
 class PluginTests(unittest.TestCase):
 
     def testPluginMountAttributes(self):
-        class Hook(object):
-            __metaclass__ = plugin.PluginMount
+        class Hook(metaclass=plugin.PluginMount):
+            pass
 
         self.assertTrue(hasattr(Hook, "plugins"))
         self.assertIs(Hook.plugins.__class__, list)
         self.assertTrue(hasattr(Hook, "base"))
 
     def testPluginMount(self):
-        class Hook(object):
-            __metaclass__ = plugin.PluginMount
+        class Hook(metaclass=plugin.PluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -34,16 +36,16 @@ class PluginTests(unittest.TestCase):
         self.assertIn(Plugin, Hook.plugins)
 
     def testPluginIsMount(self):
-        class Hook(object):
-            __metaclass__ = plugin.PluginMount
+        class Hook(metaclass=plugin.PluginMount):
+            pass
 
         hook = Hook()
         self.assertTrue(hook.isMount())
         self.assertFalse(hook.isPlugin())
 
     def testPluginIsPlugin(self):
-        class Hook(object):
-            __metaclass__ = plugin.PluginMount
+        class Hook(metaclass=plugin.PluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -53,8 +55,8 @@ class PluginTests(unittest.TestCase):
         self.assertFalse(plug.isMount())
 
     def testPluginInstantiation(self):
-        class Hook(object):
-            __metaclass__ = plugin.PluginMount
+        class Hook(metaclass=plugin.PluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -64,8 +66,8 @@ class PluginTests(unittest.TestCase):
         self.assertIs(plugins[0].__class__, Plugin)
 
     def testTaxonomyPluginAttributes(self):
-        class Hook(object):
-            __metaclass__ = plugin.TaxonomyPluginMount
+        class Hook(metaclass=plugin.TaxonomyPluginMount):
+            pass
 
         self.assertTrue(hasattr(Hook, "taxonomy"))
         self.assertIs(Hook.taxonomy.__class__, dict)
@@ -73,8 +75,8 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(Hook.__category__, "")
 
     def testTaxonomyPlugin(self):
-        class Hook(object):
-            __metaclass__ = plugin.TaxonomyPluginMount
+        class Hook(metaclass=plugin.TaxonomyPluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -82,8 +84,8 @@ class PluginTests(unittest.TestCase):
         self.assertIn(Plugin.__name__, Hook.taxonomy)
 
     def testTaxonomyPluginCategory(self):
-        class Hook(object):
-            __metaclass__ = plugin.TaxonomyPluginMount
+        class Hook(metaclass=plugin.TaxonomyPluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -95,8 +97,8 @@ class PluginTests(unittest.TestCase):
         self.assertIn("{}.{}".format(CategoryPlugin.__category__, CategoryPlugin.__name__), Hook.taxonomy)
 
     def testTaxonomyPluginInstantiation(self):
-        class Hook(object):
-            __metaclass__ = plugin.TaxonomyPluginMount
+        class Hook(metaclass=plugin.TaxonomyPluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -107,8 +109,8 @@ class PluginTests(unittest.TestCase):
         self.assertIs(plugins['Plugin'].__class__, Plugin)
 
     def testTaxonomyPluginSelection(self):
-        class Hook(object):
-            __metaclass__ = plugin.TaxonomyPluginMount
+        class Hook(object, metaclass=plugin.TaxonomyPluginMount):
+            pass
 
         class Plugin(Hook):
             pass
@@ -161,17 +163,19 @@ class StructureTests(unittest.TestCase):
         self.assertIsNot(struct.kind, structure.Structure)
 
 
+catch = "Situation Normal"
+
+
 class EventTests(unittest.TestCase):
 
     def testFireEvent(self):
-        catch = "testFireEvent"
 
         class TestEvent(event.EventBase):
             __slots__ = ['value']
 
         class TestEventCatcher(object):
             def __init__(self):
-                TestEvent.addHandler(slf.testEventHandler, 'value')
+                TestEvent.addHandler(self.testEventHandler, 'value')
 
             def testEventHandler(self, value):
                 global catch
@@ -179,17 +183,16 @@ class EventTests(unittest.TestCase):
 
         catcher = TestEventCatcher()
         TestEvent.fire("Shots fired")
-        self.assertEqual(self.catch, "Shots fired")
+        self.assertEqual(catch, "Shots fired")
 
     def testDispatchDecorator(self):
-        catch = "testDispatchDecorator"
 
         class TestEvent(event.EventBase):
             __slots__ = ['value']
 
         class TestEventCatcher(object):
             def __init__(self):
-                TestEvent.addHandler(slf.testEventHandler, 'value')
+                TestEvent.addHandler(self.testEventHandler, 'value')
 
             def testEventHandler(self, value):
                 global catch
@@ -197,10 +200,10 @@ class EventTests(unittest.TestCase):
 
         @TestEvent.dispatcher
         def testEventDispatcher(self):
-            return "Shots fired"
+            return "Decorator Shots fired"
         catcher = TestEventCatcher()
         testEventDispatcher(None)
-        self.assertEqual(self.catch, "Shots fired")
+        self.assertEqual(catch, "Decorator Shots fired")
 
 
 def main():

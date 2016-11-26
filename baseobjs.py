@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CoreObject(object):
+class CoreObject():
     """Core Object
 
     A core object knows a reference to its core.

@@ -146,7 +146,7 @@ class TaxonomyPluginMount(type):
     def __iter__(cls):
         """ Iterate the class object to get all plugins
         """
-        for key, plugin in cls.taxonomy.iteritems():
+        for key, plugin in cls.taxonomy.items():
             yield plugin
 
     def getFQClassName(cls):
@@ -173,7 +173,7 @@ class TaxonomyPluginMount(type):
         specify the *caller* argument, to avoid double instantiation of
         your child class"""
         caller = kwargs['caller'].__class__ if 'caller' in kwargs else None
-        return {key: clazz(*args, **kwargs) for key, clazz in cls.taxonomy.iteritems() if key is not caller}
+        return {key: clazz(*args, **kwargs) for key, clazz in cls.taxonomy.items() if key is not caller}
 
     def getAllCategories(cls, exclude=[]):
         """Create a dictionary with all categories and the class per
@@ -215,11 +215,12 @@ class MixinMount(type):
             attrs['__init__'] = init
             logger.debug("Creating mixinmount {}".format(name))
             cls.instance = super(MixinMount, cls).__new__(cls, name, bases, attrs)
-        elif "__init__" in attrs:
+        else:
             # Every other object: Append all non-dunderscore methods
             logger.debug("Appending methods from '{}' to {}".format(name, cls.instance))
-            cls.instance.__init_collection__.append(attrs["__init__"])
-            for name, attr in attrs.iteritems():
+            if "__init__" in attrs:
+                cls.instance.__init_collection__.append(attrs["__init__"])
+            for name, attr in attrs.items():
                 if not name.startswith("__"):
                     if hasattr(cls.instance, name):
                         logger.warning("Member '{}' already exists in {}".format(name, cls.instance))
@@ -228,9 +229,10 @@ class MixinMount(type):
         if len(bases) > 1:
             for base in bases:
                 if base != cls.instance:
-                    for name, member in base.__dict__.iteritems():
+                    for name, member in base.__dict__.items():
                         if not name.startswith("__"):
                             if hasattr(cls.instance, name):
                                 logger.warning("Mixin-member '{}' from {} already exists in {}".format(name, base, cls.instance))
                             setattr(cls.instance, name, member)
+                            logger.warning("Mixin '{}' from {} into {}".format(name, base, cls.instance))
         return cls.instance

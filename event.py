@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Needed for function decorators
 from functools import wraps
 # Import jelly.structure
-from structure import Structure
+from .structure import Structure
 
 
 class SkipEvent(Exception):
@@ -85,7 +85,7 @@ class Event(type):
         @param *args: A list of elements from the event passed to the
                       handler
         """
-        logger.debug("Adding handler {}.{}{} to '{}'".format(handler.im_class.__name__, handler.__name__, args, cls.__name__,))
+        logger.debug("Adding handler {}.{}{} to '{}'".format(handler.__self__, handler.__name__, args, cls.__name__,))
 
         @wraps(handler)
         def eventHandler(ev):
@@ -116,7 +116,6 @@ class Event(type):
         cls.removeHandler(handler)
 
 
-class EventBase(Structure):
+class EventBase(Structure, metaclass=Event):
     """Base Event, All events should Inherit from this one"""
-    __metaclass__ = Event
     __slots__ = []

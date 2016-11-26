@@ -27,14 +27,14 @@ class ConfigurationValueInvalidError(Exception):
     """The validation of the value has failed"""
 
 
-class ConfigurationValue(object):
+class ConfigurationValue:
     def __init__(self, default, help="", t=None, min=None, max=None, choices=None, validation=None, custom=False):
         self.value = default
         self.default = default if not custom else None
         self.help = help
         self.type = t if t is not None else type(self.value)
         self.min = min if min is not None else 0
-        self.max = max if max is not None else sys.maxint
+        self.max = max if max is not None else sys.maxsize
         self.choices = choices
         self.custom = custom
         if validation is None:
@@ -90,7 +90,7 @@ class ConfigurationValue(object):
 
 class ConfigurationDict(ConfigurationValue):
     def __init__(self, items, help, custom=False):
-        entries = {key: ConfigurationValue(val).setName(key) if not isinstance(val, ConfigurationValue) else val for key, val in items.iteritems()}
+        entries = {key: ConfigurationValue(val).setName(key) if not isinstance(val, ConfigurationValue) else val for key, val in items.items()}
         ConfigurationValue.__init__(self, entries, help, t=dict, custom=custom)
         if not custom:
             self.defaults = dict()
@@ -103,7 +103,7 @@ class ConfigurationDict(ConfigurationValue):
 
     def __repr__(self):
         s = "{{\n".format(self.name)
-        for key, val in self.values.iteritems():
+        for key, val in self.values.items():
             if val.__class__ is str or val.type is str:
                 s += "\t'{}' : \"{}\",\n".format(key, escapeString(str(val.get())))
             else:
@@ -112,7 +112,7 @@ class ConfigurationDict(ConfigurationValue):
         return s
 
     def set(self, values):
-        for key, val in values.iteritems():
+        for key, val in values.items():
             if isinstance(self.values[key], ConfigurationValue):
                 self.values[key].set(val)
             else:
@@ -143,12 +143,12 @@ class ConfigurationDict(ConfigurationValue):
         raise StopIteration()
 
     def itervalues(self):
-        for val in self.values.itervalues():
+        for val in self.values.values():
             yield val.get()
         raise StopIteration()
 
     def iteritems(self):
-        for key, val in self.values.iteritems():
+        for key, val in self.values.items():
             yield key, val
         raise StopIteration()
 
@@ -198,8 +198,7 @@ class UserPreferenceMeta(type):
             cls.__host__.__values__[cls.__prefix__] = ConfigurationDict(dst, help=cls.__doc__)
 
 
-class UserPreference(object):
-    __metaclass__ = UserPreferenceMeta
+class UserPreference(metaclass=UserPreferenceMeta):
     __values__ = OrderedDict()
 
     def __init__(self, appname):
@@ -221,7 +220,7 @@ class UserPreference(object):
         return self
 
     def addMany(self, entries):
-        for name, entry in entries.iteritems():
+        for name, entry in entries.items():
             self.add(name, entry)
         return self
 
@@ -231,7 +230,7 @@ class UserPreference(object):
         customPref = os.path.join(self.appdata, self.configfile)
         if os.path.exists(customPref):
             execfile(customPref, self.modules, entries)
-        for key, val in entries.iteritems():
+        for key, val in entries.items():
             if key in self.__values__:
                 self.__values__[key].set(val)
             else:
@@ -256,7 +255,7 @@ class UserPreference(object):
         s += "# Last modification: {}\n".format(time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()))
         s += "# \n"
         s += "\n"
-        for val in self.__values__.itervalues():
+        for val in self.__values__.values():
             if val.isModified:
                 s += str(val)
         return s
@@ -283,11 +282,11 @@ class UserPreference(object):
         raise StopIteration()
 
     def itervalues(self):
-        for val in self.__values__.itervalues():
+        for val in self.__values__.values():
             yield val
         raise StopIteration()
 
     def iteritems(self):
-        for key, val in self.__values__.iteritems():
+        for key, val in self.__values__.items():
             yield key, val
         raise StopIteration()

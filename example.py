@@ -11,12 +11,15 @@ logger = configureLogger()
 import wx
 
 # Import the needed parts of jelly
-from gui import InterfaceBuilder
-from view import ViewBuilder
-from menu import MenuBuilder
+from .gui import InterfaceBuilder
+from .view import ViewBuilder
+from .menu import MenuBuilder
 
 
 class JellySampleApp(InterfaceBuilder):
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     def showGui(self):
         self.prepare(title="Jelly Example Application", size=(400, 150))
@@ -38,7 +41,7 @@ class JellySampleView(ViewBuilder):
     def createView(self, parent):
         panel = wx.Panel(parent)
         sizer = wx.BoxSizer()
-        print "Creating view"
+        logger.info("Creating view")
 
         self.label = wx.StaticText(panel, label="Input:")
         self.edit = wx.TextCtrl(panel)

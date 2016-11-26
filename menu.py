@@ -16,17 +16,16 @@ logger = logging.getLogger(__name__)
 import wx
 
 # other jelly modules
-from baseobjs import CoreWindowObject
-from plugin import PluginMount
-from shortcut import ShortcutBuilder
+from .baseobjs import CoreWindowObject
+from .plugin import PluginMount
+from .shortcut import ShortcutBuilder
 
 
-class MenuBuilder(CoreWindowObject, ShortcutBuilder):
+class MenuBuilder(CoreWindowObject, ShortcutBuilder, metaclass=PluginMount):
     """The menu builder constructs the main menu of the application.
 
     Each plugin servers as a new item in the main menu bar.
     """
-    __metaclass__ = PluginMount
     WeightAny = -1
     """Classmember describing the ordering of menu items"""
 
@@ -68,7 +67,7 @@ class MenuBuilder(CoreWindowObject, ShortcutBuilder):
         """
         menu = wx.Menu()
         if parent is not None:
-            parent.AppendMenu(id=wx.NewId(), text=title, submenu=menu)
+            parent.AppendSubMenu(text=title, submenu=menu)
         return menu
 
     def separator(self, menu):
@@ -109,8 +108,8 @@ class MenuBuilder(CoreWindowObject, ShortcutBuilder):
         @type  image: Bitmap
         @param image: The icon of the item
         """
-        item = wx.MenuItem(parentMenu=menu, id=id, text=label, help=hint, kind=kind)
+        item = wx.MenuItem(parentMenu=menu, id=id, text=label, helpString=hint, kind=kind)
         if image is not None:
             item.SetBitmap(wx.ArtProvider.GetBitmap(image))
-        menu.AppendItem(item)
+        menu.Append(item)
         return item
