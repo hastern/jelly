@@ -31,7 +31,7 @@ class CommandLine:
         call_buckets = collections.defaultdict(list)
         # Build the ArgumentParser
         arg_parser = argparse.ArgumentParser(name)
-        for name, arg in self.arguments.iteritems():
+        for name, arg in self.arguments.items():
             arg_parser.add_argument(
                 "--{}".format(name),
                 **{key: val for key, val in filter(lambda e: e is not None, [
@@ -57,7 +57,12 @@ class CommandLine:
         for weight in call_order:
             for arg in call_buckets[weight]:
                 params = getattr(args, arg.name.replace("-", "_"))
-                method = getattr(core, arg.method)
+                if arg.owner is None:
+                    method = getattr(core, arg.method)
+                elif arg.owner[0] == "View":
+                    method = getattr(core.view[arg.owner[1]], arg.method)
+                else:
+                    raise TypeError("Unknown Owner")
                 if params is not None and params != arg.default:
                     if isinstance(params, list):
                         method(*params)
@@ -81,6 +86,7 @@ class CommandLine:
         if self.name in CommandLine.arguments:
             raise KeyError(self.name)
         CommandLine.arguments[self.name] = self
+        self.owner = flags.get('owner')
 
     def __call__(self, func):
         if self.help == "":
