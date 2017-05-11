@@ -35,10 +35,10 @@ def createPluginsFolder(dirname='plugins'):  # pragma: no cover
 
 import os
 for module in os.listdir(os.path.dirname(__file__)):
-    if module == '__init__.py' or module[-3:] != '.py':
+    if module == '__init__.py' or module[-3:] != '.py' or module == '__pycache__':
         continue
-__import__(module[:-3], locals(), globals())
-del module
+    __import__(module[:-3], locals(), globals())
+    del module
 """
     if not os.path.exists(dirname):
         os.mkdir(dirname)
