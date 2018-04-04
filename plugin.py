@@ -221,7 +221,7 @@ class MixinMount(type):
             if "__init__" in attrs:
                 cls.instance.__init_collection__.append(attrs["__init__"])
             for name, attr in attrs.items():
-                if not name.startswith("__"):
+                if name not in ["__init__", "__module__", "__qualname__"]:
                     if hasattr(cls.instance, name):
                         logger.warning("Member '{}' already exists in {}".format(name, cls.instance))
                     setattr(cls.instance, name, attr)
