@@ -26,9 +26,6 @@ class ShortcutBuilder(object):
                 for child in self.sc_childs:
                     for sc in child.getShortcuts():
                         yield sc
-                raise StopIteration()
-        else:
-            raise StopIteration()
 
     def getShortcutIds(self):
         """Iterator over all IDs from every shortcuts from every child"""
@@ -37,6 +34,3 @@ class ShortcutBuilder(object):
                 for child in self.sc_childs:
                     for sc in child.getShortcutIds():
                         yield sc
-                raise StopIteration()
-        else:
-            raise StopIteration()
