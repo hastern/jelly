@@ -11,7 +11,7 @@ know anything about the python logging facility.
 import re
 import logging
 
-from event import EventBase
+from .event import EventBase
 
 
 class JellyLogEvent(EventBase):
