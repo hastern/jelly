@@ -47,6 +47,8 @@ class InterfaceBuilder(metaclass=MixinMount):
         self.app = wx.App(redirect=False)
         self.wHnd = None
         self.suppress_dialogs = False
+        self.view = None
+        self.menu = None
 
         self.shortcuts = [
             (wx.ACCEL_NORMAL, wx.WXK_F5, self.update),
@@ -113,7 +115,8 @@ class InterfaceBuilder(metaclass=MixinMount):
         @type  self: InterfaceBuilder
         @param self: The class instance
         """
-        self.view.updateView()
+        if self.view is not None:
+            self.view.updateView()
         if event is not None:
             event.Skip()
 

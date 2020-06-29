@@ -9,6 +9,7 @@ import collections
 from functools import wraps
 
 import logging
+
 # We are assuming, that there is an already configured logger present
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class CommandLine:
     Can be reorder using the *weight* flag of the initializer.
     'lighter' Arguments will go first
     """
+
     arguments = collections.OrderedDict()
 
     @classmethod
@@ -32,43 +34,39 @@ class CommandLine:
         # Build the ArgumentParser
         arg_parser = argparse.ArgumentParser(name)
         for name, arg in self.arguments.items():
-            arg_parser.add_argument(
-                "--{}".format(name),
-                **{key: val for key, val in filter(lambda e: e is not None, [
-                    ("nargs", len(arg.args)) if len(arg.args) > 0 else None,
-                    ("metavar", arg.args) if arg.action == "store" else None,
-                    ("type", arg.type) if arg.action == "store" else None,
-                    ("default", arg.default),
-                    ("action", arg.action),
-                    ("help", arg.help)
-                ])}
-            )
+            arg_name = f"--{name}"
+            arg_opts = {"default": arg.default, "action": arg.action, "help": arg.help}
+            arg_opts["nargs"] = len(arg.args) if len(arg.args) > 0 else None
+            if arg.action == "store":
+                arg_opts["metavar"] = arg.args
+                arg_opts["type"] = arg.type
+            arg_parser.add_argument(arg_name, **arg_opts)
             call_buckets[arg.weight].append(arg)
         # Add batch argument to suppress gui
-        arg_parser.add_argument("--batch", "-b", "--no-gui",
-                                help="Run in batch mode (Don't show the gui)",
-                                action="store_true",
-                                default=sys.flags.interactive)
+        arg_parser.add_argument(
+            "--batch",
+            "-b",
+            "--no-gui",
+            help="Run in batch mode (Don't show the gui)",
+            action="store_true",
+            default=sys.flags.interactive,
+        )
         # Parse all arguments
         args = arg_parser.parse_args()
         # Check all actions
-        logger.debug(call_buckets)
         call_order = sorted(call_buckets.keys())
         for weight in call_order:
             for arg in call_buckets[weight]:
                 params = getattr(args, arg.name.replace("-", "_"))
+                if params is None:
+                    continue
                 if arg.owner is None:
-                    method = getattr(core, arg.method)
+                    arg.method(core, *params)
                 elif arg.owner[0] == "View":
-                    method = getattr(core.view[arg.owner[1]], arg.method)
+                    method = getattr(core.view[arg.owner[1]], arg.method_name)
+                    method(*params)
                 else:
                     raise TypeError("Unknown Owner")
-                if params is not None and params != arg.default:
-                    if isinstance(params, list):
-                        method(*params)
-                    else:
-                        method()
-        return not args.batch
 
     def __init__(self, name, *args, **flags):
         """The constructor for the CommandLine object.
@@ -86,18 +84,21 @@ class CommandLine:
         if self.name in CommandLine.arguments:
             raise KeyError(self.name)
         CommandLine.arguments[self.name] = self
-        self.owner = flags.get('owner')
+        self.owner = flags.get("owner")
 
     def __call__(self, func):
         if self.help == "":
             self.help = func.__doc__
-        self.method = func.__name__
+        self.method_name = func.__name__
+        self.method = func
 
         @wraps(func)
         def wrapper(instance, *args, **kwargs):
             return func(instance, *args, **kwargs)
+
         return wrapper
 
     def __str__(self):
         return "--{} -> {}('{}')".format(self.name, self.method, "', '".join(self.args))
+
     __repr__ = __str__
