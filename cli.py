@@ -67,6 +67,7 @@ class CommandLine:
                     method(*params)
                 else:
                     raise TypeError("Unknown Owner")
+        return args.batch
 
     def __init__(self, name, *args, **flags):
         """The constructor for the CommandLine object.
